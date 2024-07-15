@@ -2,15 +2,18 @@
 # Use this to override those values
 # Can add own unique config options here if desired
 
-# Custom values not used by ares
-MyBotName: Deimos
-MyBotRace: Protoss
+# Set custom values here for your bot
+MyBotName: Phobos
+MyBotRace: Terran
+# setting ture allows auto upload to aiareana (https://aiarena.net/) on push to `main` branch
+# see tutorial on readme before setting to True
+AutoUploadToAiarena: True
 ########################
 
 UseData: False
 Debug: False
 GameStep: 2
-DebugGameStep: 4
+DebugGameStep: 2
 
 DebugOptions:
     # one of: Air, AirVsGround, Ground, GroundAvoidance, AirAvoidance
@@ -19,4 +22,3 @@ DebugOptions:
     DebugSpawn: False
     ShowPathingCost: False
     ResourceDebug: False
-    ShowBuildingFormation: False
