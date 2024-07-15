@@ -1,5 +1,7 @@
 from typing import Optional
 
+from loguru import logger
+
 from ares import AresBot, Hub, ManagerMediator, UnitRole
 from ares.behaviors.macro import AutoSupply, Mining, SpawnController
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
@@ -9,6 +11,7 @@ from sc2.unit import Unit
 from bot.managers.adept_harass_manager import AdeptHarassManager
 from bot.managers.combat_manager import CombatManager
 from bot.managers.oracle_manager import OracleManager
+from bot.managers.worker_defence_manager import WorkerDefenceManager
 
 
 class MyBot(AresBot):
@@ -37,6 +40,7 @@ class MyBot(AresBot):
                 AdeptHarassManager(self, self.config, manager_mediator),
                 CombatManager(self, self.config, manager_mediator),
                 OracleManager(self, self.config, manager_mediator),
+                WorkerDefenceManager(self, self.config, manager_mediator)
             ],
         )
 
@@ -47,17 +51,47 @@ class MyBot(AresBot):
 
         self.register_behavior(Mining())
         if self.build_order_runner.build_completed:
-            self.register_behavior(
-                SpawnController(
-                    {
-                        UnitID.OBSERVER: {"proportion": 0.01, "priority": 0},
-                        UnitID.IMMORTAL: {"proportion": 0.09, "priority": 1},
-                        UnitID.STALKER: {"proportion": 0.9, "priority": 2},
-                    },
-                    spawn_target=self.mediator.get_own_nat,
+            if self.mediator.get_enemy_ling_rushed:
+                self.register_behavior(
+                    SpawnController(
+                        {
+                            UnitID.ADEPT: {"proportion": 1.0, "priority": 0},
+                        },
+                        spawn_target=self.mediator.get_own_nat,
+                    )
                 )
-            )
+            else:
+                self.register_behavior(
+                    SpawnController(
+                        {
+                            UnitID.OBSERVER: {"proportion": 0.01, "priority": 0},
+                            UnitID.IMMORTAL: {"proportion": 0.09, "priority": 1},
+                            UnitID.STALKER: {"proportion": 0.9, "priority": 2},
+                        },
+                        spawn_target=self.mediator.get_own_nat,
+                    )
+                )
             self.register_behavior(AutoSupply(self.start_location))
+
+        if not self.build_order_runner.build_completed and (
+            self.mediator.get_enemy_ling_rushed
+            or (self.mediator.get_enemy_marauder_rush and self.time < 150.0)
+            or self.mediator.get_enemy_marine_rush
+            or self.mediator.get_is_proxy_zealot
+            or self.mediator.get_enemy_ravager_rush
+            or self.mediator.get_enemy_went_marine_rush
+            or self.mediator.get_enemy_four_gate
+            or self.mediator.get_enemy_roach_rushed
+            or self.mediator.get_enemy_was_greedy
+            or self.mediator.get_enemy_worker_rushed
+            # general check, no build should be banking this much
+            or self.minerals > 750
+        ):
+            if self.mediator.get_enemy_roach_rushed:
+                for th in self.townhalls.not_ready:
+                    self.mediator.cancel_structure(structure=th)
+            logger.info(f"{self.time_formatted}: Setting BO Completed")
+            self.build_order_runner.set_build_completed()
 
     async def on_unit_created(self, unit: Unit) -> None:
         await super(MyBot, self).on_unit_created(unit)
