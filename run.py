@@ -59,8 +59,11 @@ def main():
         # alternative example code if finding the map path is problematic
         map_list: List[str] = [
             # "Equilibrium513AIE",
-            # "Gresvan513AIE"
-            "GoldenAura513AIE"
+            # "Gresvan513AIE",
+            # "GoldenAura513AIE",
+            # "HardLead513AIE",
+            # "Oceanborn513AIE",
+            "SiteDelta513AIE"
         ]
 
         random_race = random.choice([Race.Zerg, Race.Terran, Race.Protoss])
@@ -72,6 +75,7 @@ def main():
                 Computer(random_race, Difficulty.CheatVision, ai_build=AIBuild.Macro),
             ],
             realtime=False,
+            random_seed=2
         )
 
 

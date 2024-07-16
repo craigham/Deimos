@@ -82,7 +82,6 @@ class MyBot(AresBot):
             or self.mediator.get_enemy_went_marine_rush
             or self.mediator.get_enemy_four_gate
             or self.mediator.get_enemy_roach_rushed
-            or self.mediator.get_enemy_was_greedy
             or self.mediator.get_enemy_worker_rushed
             # general check, no build should be banking this much
             or self.minerals > 750
