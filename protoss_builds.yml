@@ -34,28 +34,28 @@ Builds:
         ConstantWorkerProductionTill: 44
         AutoSupplyAtSupply: 23
         OpeningBuildOrder:
-            - 14 pylon
-            - 16 chrono @ nexus
-            - 16 gate
+            - 13 pylon
+            - 14 chrono @ nexus
+            - 15 gate
             - 16 gas
             - 19 gate
             - 19 gas
             - 15 worker_scout:
                 [ nat, enemy_spawn ]
+            - 19 chrono @ nexus
             - 20 core
             - 22 pylon
             - 22 warpgateresearch
-            - 23 adept *2
-            - 23 chrono @ core
+            - 16 adept *2
             - 25 stargate
-            - 26 adept *2
+            - 12 adept *2
             - 26 chrono @ core
-            - 28 oracle
+            - 12 oracle
             - 28 nexus
             - 28 chrono @ stargate
-            - 28 oracle
-            - 36 adept *2
-            - 36 adept *2
+            - 12 oracle
+            - 12 adept *2
+            - 12 adept *2
             - 36 pylon @ nat
             # - 36 twilightcouncil
             - 36 roboticsfacility

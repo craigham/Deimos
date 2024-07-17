@@ -54,7 +54,7 @@ class WorkerDefenceManager(Manager):
             UnitID.PROBE: 1,
             UnitID.MARINE: 0,
             UnitID.SCV: 1,
-            UnitID.ZERGLING: 1,
+            UnitID.ZERGLING: 2,
         }
 
         self._proxy_to_workers_required: dict[UnitID, int] = {
@@ -146,12 +146,12 @@ class WorkerDefenceManager(Manager):
         num_probes_required -= len(defender_probes)
         if num_probes_required > 0:
             for _ in range(num_probes_required):
-                if scv := self.manager_mediator.select_worker(
+                if probe := self.manager_mediator.select_worker(
                     target_position=self.ai.start_location,
                     min_health_perc=self.MIN_HEALTH_PERC,
                 ):
                     self.manager_mediator.assign_role(
-                        tag=scv.tag, role=UnitRole.DEFENDING
+                        tag=probe.tag, role=UnitRole.DEFENDING
                     )
 
         return num_enemy
