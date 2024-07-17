@@ -118,16 +118,20 @@ class AdeptHarass(BaseUnit):
                         ShootTargetInRange(unit=unit, targets=in_attack_range)
                     )
                 # then enemy structures
-                elif in_attack_range := cy_in_attack_range(unit, all_close):
-                    adept_harass.add(
-                        ShootTargetInRange(unit=unit, targets=in_attack_range)
-                    )
-                if can_take_fight:
-                    adept_harass.add(
-                        StutterUnitBack(
-                            unit, cy_closest_to(unit.position, all_close), grid=grid
+                if not only_enemy_units:
+                    if in_attack_range := cy_in_attack_range(unit, all_close):
+                        adept_harass.add(
+                            ShootTargetInRange(unit=unit, targets=in_attack_range)
                         )
-                    )
+                if can_take_fight:
+                    if only_enemy_units:
+                        adept_harass.add(
+                            StutterUnitBack(
+                                unit, cy_closest_to(unit.position, only_enemy_units), grid=grid
+                            )
+                        )
+                    else:
+                        adept_harass.add(UseAbility(AbilityId.MOVE_MOVE, unit, target))
                 else:
                     adept_harass.add(KeepUnitSafe(unit, grid))
             # moving on map

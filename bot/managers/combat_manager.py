@@ -155,11 +155,11 @@ class CombatManager(Manager):
             )
             # enemy around, engagement control
             if all_close:
-                if in_attack_range := cy_in_attack_range(s, only_enemy_units):
+                if in_attack_range_e := cy_in_attack_range(s, only_enemy_units):
                     # `ShootTargetInRange` will check weapon is ready
                     # otherwise it will not execute
                     attacking_maneuver.add(
-                        ShootTargetInRange(unit=s, targets=in_attack_range)
+                        ShootTargetInRange(unit=s, targets=in_attack_range_e)
                     )
                 # then enemy structures
                 elif in_attack_range := cy_in_attack_range(s, all_close):
@@ -167,13 +167,12 @@ class CombatManager(Manager):
                         ShootTargetInRange(unit=s, targets=in_attack_range)
                     )
 
-                enemy_target: Unit = cy_pick_enemy_target(all_close)
-
                 # low shield, keep protoss units safe
                 if s.shield_percentage < 0.3:
                     attacking_maneuver.add(KeepUnitSafe(unit=s, grid=grid))
 
                 else:
+                    enemy_target: Unit = cy_closest_to(s.position, all_close)
                     attacking_maneuver.add(
                         StutterUnitBack(unit=s, target=enemy_target, grid=grid)
                     )

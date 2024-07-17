@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 from typing import Optional, TYPE_CHECKING
 
-from ares.behaviors.combat.individual import WorkerKiteBack
+import numpy as np
+
+from ares.behaviors.combat.individual import WorkerKiteBack, KeepUnitSafe
 from ares.cache import property_cache_once_per_frame
 from ares.consts import ALL_STRUCTURES, WORKER_TYPES, UnitTreeQueryType
 from ares.managers.manager_mediator import ManagerMediator
@@ -84,6 +86,7 @@ class WorkerDefenders(BaseUnit):
             query_tree=UnitTreeQueryType.EnemyGround,
             return_as_dict=True,
         )
+        grid: np.ndarray = self.mediator.get_ground_grid
 
         for worker in units:
             if worker.is_carrying_resource and self.ai.townhalls:
@@ -103,6 +106,8 @@ class WorkerDefenders(BaseUnit):
 
             if enemy_workers_target:
                 worker.attack(enemy_workers_target)
+            elif worker.shield_percentage < 0.2:
+                self.ai.register_behavior(KeepUnitSafe(worker, grid))
             elif proxies := self.proxy_structures:
                 worker.attack(cy_closest_to(worker.position, proxies))
             elif threats := [

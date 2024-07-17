@@ -43,8 +43,8 @@ Builds:
             - 15 worker_scout:
                 [ nat, enemy_spawn ]
             - 19 chrono @ nexus
+            - 19 pylon
             - 20 core
-            - 22 pylon
             - 22 warpgateresearch
             - 16 adept *2
             - 25 stargate
