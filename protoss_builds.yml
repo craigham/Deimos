@@ -31,36 +31,34 @@ BuildChoices:
 
 Builds:
     AdeptOracle:
-        ConstantWorkerProductionTill: 44
-        AutoSupplyAtSupply: 23
+        ConstantWorkerProductionTill: 23
+        AutoSupplyAtSupply: 44
         OpeningBuildOrder:
             - 13 pylon
-            - 14 chrono @ nexus
-            - 15 gate
+            - 14 gate
+            - 15 chrono @ nexus
             - 16 gas
-            - 19 gate
-            - 19 gas
             - 15 worker_scout:
                 [ nat, enemy_spawn ]
-            - 19 chrono @ nexus
-            - 19 pylon
-            - 20 core
-            - 22 warpgateresearch
-            - 16 adept *2
-            - 25 stargate
-            - 12 adept *2
-            - 26 chrono @ core
-            - 12 oracle
-            - 28 nexus
-            - 28 chrono @ stargate
-            - 12 oracle
-            - 12 adept *2
-            - 12 adept *2
-            - 36 pylon @ nat
-            # - 36 twilightcouncil
-            - 36 roboticsfacility
-            - 36 gas
-            # - 36 blinktech
-            # - 36 chrono @ twilightcouncil
-            - 36 gas
-            - 36 gateway *4
+            - 17 gate
+            - 18 core
+            - 18 gas
+            - 20 pylon
+            - 21 warpgateresearch
+            - 21 adept *2
+            # - 22 chrono @ core
+            - 22 stargate
+            - 22 adept *2
+            - 22 chrono @ core
+            - 22 pylon
+            - 22 nexus
+            - 22 oracle
+            - 22 chrono @ stargate
+            - 22 adept *2
+            - 22 pylon
+            - 22 gateway
+            - 22 oracle
+            - 22 adept *2
+            - 22 roboticsfacility
+            - 22 gas
+

@@ -131,9 +131,7 @@ class CombatManager(Manager):
 
     async def update(self, iteration: int) -> None:
         grid: np.ndarray = self.manager_mediator.get_ground_grid
-        army: Units = self.manager_mediator.get_units_from_role(
-            role=UnitRole.ATTACKING
-        )
+        army: Units = self.manager_mediator.get_units_from_role(role=UnitRole.ATTACKING)
         near_enemy: dict[int, Units] = self.manager_mediator.get_units_in_range(
             start_points=army,
             distances=15,
@@ -148,7 +146,8 @@ class CombatManager(Manager):
             attacking_maneuver: CombatManeuver = CombatManeuver()
             # we already calculated close enemies, use unit tag to retrieve them
             all_close: Units = near_enemy[s.tag].filter(
-                lambda u: not u.is_memory and u.type_id not in COMMON_UNIT_IGNORE_TYPES
+                lambda u: (not u.is_cloaked or u.is_cloaked and u.is_revealed)
+                and (not u.is_memory and u.type_id not in COMMON_UNIT_IGNORE_TYPES)
             )
             only_enemy_units: Units = all_close.filter(
                 lambda u: u.type_id not in ALL_STRUCTURES
