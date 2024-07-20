@@ -45,9 +45,7 @@ class WorkerDefenceManager(Manager):
         """
         super().__init__(ai, config, mediator)
 
-        self.worker_defenders_behavior: BaseUnit = WorkerDefenders(
-            ai, config, mediator
-        )
+        self.worker_defenders_behavior: BaseUnit = WorkerDefenders(ai, config, mediator)
 
         self._enemy_to_workers_required: dict[UnitID, int] = {
             UnitID.DRONE: 1,
@@ -138,7 +136,9 @@ class WorkerDefenceManager(Manager):
                     if enemy.type_id == UnitID.MARINE:
                         num_probes_required = 0
                         break
-                    num_probes_required += self._enemy_to_workers_required[enemy.type_id]
+                    num_probes_required += self._enemy_to_workers_required[
+                        enemy.type_id
+                    ]
 
         if num_probes_required <= 1:
             return 0
@@ -181,13 +181,13 @@ class WorkerDefenceManager(Manager):
         for probe in defender_probes:
             if (
                 (not enemy_near_bases and not proxies and len(near_enemy_workers) < 6)
-                or (
-                    probe.shield_percentage <= 0.99
-                    and len(near_enemy_workers) < 6
-                )
-                or cy_distance_to_squared(probe.position, self.ai.start_location) > 2400.0
+                or (probe.shield_percentage <= 0.99 and len(near_enemy_workers) < 6)
+                or cy_distance_to_squared(probe.position, self.ai.start_location)
+                > 2400.0
             ):
-                self.manager_mediator.assign_role(tag=probe.tag, role=UnitRole.GATHERING)
+                self.manager_mediator.assign_role(
+                    tag=probe.tag, role=UnitRole.GATHERING
+                )
 
     def _execute_worker_defenders(self, defender_probes: Units) -> None:
         self.worker_defenders_behavior.execute(defender_probes)

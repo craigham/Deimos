@@ -1,11 +1,15 @@
 from typing import Optional
 
-from loguru import logger
-
 from ares import AresBot, Hub, ManagerMediator, UnitRole
-from ares.behaviors.macro import AutoSupply, Mining, SpawnController
+from ares.behaviors.macro import (
+    AutoSupply,
+    MacroPlan,
+    Mining,
+    ProductionController,
+    SpawnController,
+)
+from loguru import logger
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
-from sc2.ids.upgrade_id import UpgradeId
 from sc2.unit import Unit
 
 from bot.managers.adept_harass_manager import AdeptHarassManager
@@ -26,6 +30,22 @@ class MyBot(AresBot):
         """
         super().__init__(game_step_override)
 
+        self._army_comp: dict = self.stalker_immortal_comp
+
+    @property
+    def adept_only_comp(self) -> dict:
+        return {
+            UnitID.ADEPT: {"proportion": 1.0, "priority": 0},
+        }
+
+    @property
+    def stalker_immortal_comp(self) -> dict:
+        return {
+            UnitID.OBSERVER: {"proportion": 0.01, "priority": 0},
+            UnitID.IMMORTAL: {"proportion": 0.09, "priority": 1},
+            UnitID.STALKER: {"proportion": 0.9, "priority": 2},
+        }
+
     def register_managers(self) -> None:
         """
         Override the default `register_managers` in Ares, so we can
@@ -40,7 +60,7 @@ class MyBot(AresBot):
                 AdeptHarassManager(self, self.config, manager_mediator),
                 CombatManager(self, self.config, manager_mediator),
                 OracleManager(self, self.config, manager_mediator),
-                WorkerDefenceManager(self, self.config, manager_mediator)
+                WorkerDefenceManager(self, self.config, manager_mediator),
             ],
         )
 
@@ -52,26 +72,24 @@ class MyBot(AresBot):
         self.register_behavior(Mining())
         if self.build_order_runner.build_completed:
             if self.mediator.get_enemy_ling_rushed:
-                self.register_behavior(
-                    SpawnController(
-                        {
-                            UnitID.ADEPT: {"proportion": 1.0, "priority": 0},
-                        },
-                        spawn_target=self.mediator.get_own_nat,
-                    )
-                )
+                self._army_comp = self.adept_only_comp
             else:
-                self.register_behavior(
-                    SpawnController(
-                        {
-                            UnitID.OBSERVER: {"proportion": 0.01, "priority": 0},
-                            UnitID.IMMORTAL: {"proportion": 0.09, "priority": 1},
-                            UnitID.STALKER: {"proportion": 0.9, "priority": 2},
-                        },
-                        spawn_target=self.mediator.get_own_nat,
-                    )
+                self._army_comp = self.stalker_immortal_comp
+
+            macro_plan: MacroPlan = MacroPlan()
+            macro_plan.add(AutoSupply(self.start_location))
+            macro_plan.add(
+                ProductionController(
+                    self._army_comp, base_location=self.start_location
                 )
-            self.register_behavior(AutoSupply(self.start_location))
+            )
+            macro_plan.add(
+                SpawnController(
+                    self._army_comp, spawn_target=self.mediator.get_own_nat
+                )
+            )
+
+            self.register_behavior(macro_plan)
 
         if not self.build_order_runner.build_completed and (
             self.mediator.get_enemy_ling_rushed

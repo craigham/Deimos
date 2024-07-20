@@ -14,8 +14,8 @@ from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
 
-from bot.combat.adept_shade_harass import AdeptShadeHarass
 from bot.combat.adept_harass import AdeptHarass
+from bot.combat.adept_shade_harass import AdeptShadeHarass
 from bot.combat.base_unit import BaseUnit
 
 if TYPE_CHECKING:

@@ -2,19 +2,17 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional, Union
 
 import numpy as np
-from src.ares.consts import ALL_STRUCTURES, WORKER_TYPES
-
 from ares import ManagerMediator, UnitTreeQueryType
 from ares.behaviors.combat import CombatManeuver
 from ares.behaviors.combat.group import AMoveGroup, GroupUseAbility, StutterGroupBack
 from ares.behaviors.combat.individual import (
     KeepUnitSafe,
     PathUnitToTarget,
-    UseAbility,
     ShootTargetInRange,
     StutterUnitBack,
+    UseAbility,
 )
-from ares.consts import EngagementResult, VICTORY_DECISIVE_OR_BETTER
+from ares.consts import VICTORY_DECISIVE_OR_BETTER, EngagementResult
 from ares.dicts.unit_data import UNIT_DATA
 from ares.managers.squad_manager import UnitSquad
 from cython_extensions import (
@@ -30,6 +28,7 @@ from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
+from src.ares.consts import ALL_STRUCTURES, WORKER_TYPES
 
 from bot.combat.base_unit import BaseUnit
 from bot.consts import COMMON_UNIT_IGNORE_TYPES
@@ -127,7 +126,9 @@ class AdeptHarass(BaseUnit):
                     if only_enemy_units:
                         adept_harass.add(
                             StutterUnitBack(
-                                unit, cy_closest_to(unit.position, only_enemy_units), grid=grid
+                                unit,
+                                cy_closest_to(unit.position, only_enemy_units),
+                                grid=grid,
                             )
                         )
                     else:

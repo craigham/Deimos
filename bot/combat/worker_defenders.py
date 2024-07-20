@@ -1,19 +1,18 @@
 from dataclasses import dataclass
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
-
-from ares.behaviors.combat.individual import WorkerKiteBack, KeepUnitSafe
+from ares.behaviors.combat.individual import KeepUnitSafe, WorkerKiteBack
 from ares.cache import property_cache_once_per_frame
 from ares.consts import ALL_STRUCTURES, WORKER_TYPES, UnitTreeQueryType
 from ares.managers.manager_mediator import ManagerMediator
 from cython_extensions import (
+    cy_attack_ready,
     cy_center,
     cy_closest_to,
     cy_distance_to_squared,
     cy_in_attack_range,
     cy_pick_enemy_target,
-    cy_attack_ready,
 )
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2

@@ -5,20 +5,20 @@ import numpy as np
 from ares import ManagerMediator
 from ares.behaviors.combat import CombatManeuver
 from ares.behaviors.combat.individual import (
-    ShootTargetInRange,
-    KeepUnitSafe,
-    StutterUnitBack,
-    PathUnitToTarget,
     AMove,
+    KeepUnitSafe,
+    PathUnitToTarget,
+    ShootTargetInRange,
+    StutterUnitBack,
 )
 from ares.cache import property_cache_once_per_frame
 from ares.consts import (
+    ALL_STRUCTURES,
     TOWNHALL_TYPES,
+    WORKER_TYPES,
     EngagementResult,
     UnitRole,
     UnitTreeQueryType,
-    WORKER_TYPES,
-    ALL_STRUCTURES,
 )
 from ares.managers.manager import Manager
 from ares.managers.squad_manager import UnitSquad
@@ -35,8 +35,8 @@ from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
 
-from bot.combat.adept_shade_harass import AdeptShadeHarass
 from bot.combat.adept_harass import AdeptHarass
+from bot.combat.adept_shade_harass import AdeptShadeHarass
 from bot.combat.base_unit import BaseUnit
 from bot.consts import COMMON_UNIT_IGNORE_TYPES
 
