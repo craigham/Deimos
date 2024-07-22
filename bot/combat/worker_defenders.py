@@ -105,8 +105,8 @@ class WorkerDefenders(BaseUnit):
 
             if enemy_workers_target:
                 worker.attack(enemy_workers_target)
-            elif worker.shield_percentage < 0.2:
-                self.ai.register_behavior(KeepUnitSafe(worker, grid))
+            # elif worker.shield_percentage < 1.0:
+            #     self.ai.register_behavior(KeepUnitSafe(worker, grid))
             elif proxies := self.proxy_structures:
                 worker.attack(cy_closest_to(worker.position, proxies))
             elif threats := [

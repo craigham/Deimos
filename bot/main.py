@@ -69,7 +69,7 @@ class MyBot(AresBot):
     async def on_step(self, iteration: int) -> None:
         await super(MyBot, self).on_step(iteration)
 
-        self.register_behavior(Mining())
+        self.register_behavior(Mining(flee_at_health_perc=1.0))
         if self.build_order_runner.build_completed:
             if self.mediator.get_enemy_ling_rushed:
                 self._army_comp = self.adept_only_comp

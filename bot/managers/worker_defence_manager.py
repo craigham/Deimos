@@ -148,7 +148,7 @@ class WorkerDefenceManager(Manager):
             for _ in range(num_probes_required):
                 if probe := self.manager_mediator.select_worker(
                     target_position=self.ai.start_location,
-                    min_health_perc=self.MIN_HEALTH_PERC,
+                    min_shield_perc=1.0,
                 ):
                     self.manager_mediator.assign_role(
                         tag=probe.tag, role=UnitRole.DEFENDING
@@ -181,7 +181,7 @@ class WorkerDefenceManager(Manager):
         for probe in defender_probes:
             if (
                 (not enemy_near_bases and not proxies and len(near_enemy_workers) < 6)
-                or (probe.shield_percentage <= 0.99 and len(near_enemy_workers) < 6)
+                or (probe.shield_percentage <= 0.2 and len(near_enemy_workers) < 6)
                 or cy_distance_to_squared(probe.position, self.ai.start_location)
                 > 2400.0
             ):
