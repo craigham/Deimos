@@ -7,7 +7,7 @@ BuildChoices:
     test_123:
         BotName: Test
         Cycle:
-            - AdeptOracle
+            - Test
 
     Protoss:
         BotName: ProtossRace
@@ -30,6 +30,22 @@ BuildChoices:
             - AdeptOracle
 
 Builds:
+    Test:
+        ConstantWorkerProductionTill: 44
+        AutoSupplyAtSupply: 44
+        OpeningBuildOrder:
+            - 13 pylon
+            - 14 gate
+            - 15 chrono @ nexus
+            - 16 gas
+            - 17 gate
+            - 18 expand
+            - 18 chrono @ nexus
+            - 18 core
+            - 18 gas
+            - 20 pylon
+            - 21 warpgateresearch
+            - 22 gas *2
     AdeptOracle:
         ConstantWorkerProductionTill: 23
         AutoSupplyAtSupply: 44

@@ -1,5 +1,7 @@
 from typing import Optional
 
+from sc2.units import Units
+
 from ares import AresBot, Hub, ManagerMediator, UnitRole
 from ares.behaviors.macro import (
     AutoSupply,
@@ -31,6 +33,7 @@ class MyBot(AresBot):
         super().__init__(game_step_override)
 
         self._army_comp: dict = self.stalker_immortal_comp
+        self._enemy_rushed: bool = False
 
     @property
     def adept_only_comp(self) -> dict:
@@ -71,22 +74,29 @@ class MyBot(AresBot):
 
         self.register_behavior(Mining(flee_at_health_perc=1.0))
         if self.build_order_runner.build_completed:
+
             if self.mediator.get_enemy_ling_rushed:
                 self._army_comp = self.adept_only_comp
+                # if [
+                #     c
+                #     for c in self.mediator.get_own_structures_dict[
+                #         UnitID.CYBERNETICSCORE
+                #     ]
+                #     if c.is_ready
+                # ]:
+                #     self._army_comp = self.adept_only_comp
+                # else:
+                #     self._army_comp = self.zealot_only_comp
             else:
                 self._army_comp = self.stalker_immortal_comp
 
             macro_plan: MacroPlan = MacroPlan()
             macro_plan.add(AutoSupply(self.start_location))
             macro_plan.add(
-                ProductionController(
-                    self._army_comp, base_location=self.start_location
-                )
+                ProductionController(self._army_comp, base_location=self.start_location)
             )
             macro_plan.add(
-                SpawnController(
-                    self._army_comp, spawn_target=self.mediator.get_own_nat
-                )
+                SpawnController(self._army_comp, spawn_target=self.mediator.get_own_nat)
             )
 
             self.register_behavior(macro_plan)
@@ -101,14 +111,28 @@ class MyBot(AresBot):
             or self.mediator.get_enemy_four_gate
             or self.mediator.get_enemy_roach_rushed
             or self.mediator.get_enemy_worker_rushed
-            # general check, no build should be banking this much
-            or self.minerals > 750
         ):
+            self._enemy_rushed = True
             if self.mediator.get_enemy_roach_rushed:
                 for th in self.townhalls.not_ready:
                     self.mediator.cancel_structure(structure=th)
+            worker_scouts: Units = self.mediator.get_units_from_role(
+                role=UnitRole.BUILD_RUNNER_SCOUT, unit_type=self.worker_type
+            )
+            for scout in worker_scouts:
+                # issue custom commands
+                self.mediator.assign_role(tag=scout.tag, role=UnitRole.GATHERING)
+                scout.gather(self.mineral_field.closest_to(self.start_location))
+
             logger.info(f"{self.time_formatted}: Setting BO Completed")
             self.build_order_runner.set_build_completed()
+
+        if (
+            self.can_afford(UnitID.PROBE)
+            and self.townhalls.idle
+            and self.supply_workers < 44
+        ):
+            self.train(UnitID.PROBE)
 
     async def on_unit_created(self, unit: Unit) -> None:
         await super(MyBot, self).on_unit_created(unit)
