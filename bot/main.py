@@ -76,7 +76,7 @@ class MyBot(AresBot):
         self.register_behavior(Mining(flee_at_health_perc=1.0))
         if self.build_order_runner.build_completed:
 
-            if self.mediator.get_enemy_ling_rushed and self.ai.time < 270.0:
+            if self.mediator.get_enemy_ling_rushed and self.time < 270.0:
                 self._army_comp = self.adept_only_comp
                 # if [
                 #     c
