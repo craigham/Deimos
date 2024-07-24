@@ -1,5 +1,6 @@
 from typing import Optional
 
+from sc2.ids.ability_id import AbilityId
 from sc2.units import Units
 
 from ares import AresBot, Hub, ManagerMediator, UnitRole
@@ -75,7 +76,7 @@ class MyBot(AresBot):
         self.register_behavior(Mining(flee_at_health_perc=1.0))
         if self.build_order_runner.build_completed:
 
-            if self.mediator.get_enemy_ling_rushed:
+            if self.mediator.get_enemy_ling_rushed and self.ai.time < 270.0:
                 self._army_comp = self.adept_only_comp
                 # if [
                 #     c
@@ -134,12 +135,29 @@ class MyBot(AresBot):
         ):
             self.train(UnitID.PROBE)
 
+            if (
+                self.supply_workers < 42
+                and self.can_afford(UnitID.PROBE)
+                and len(self.townhalls) >= 2
+            ):
+                self.train(UnitID.PROBE)
+
+            if available_nexuses := [
+                th for th in self.townhalls if th.energy >= 50 and th.is_ready
+            ]:
+                if targets := [
+                    s for s in self.structures if s.is_ready and not s.is_idle
+                ]:
+                    available_nexuses[0](
+                        AbilityId.EFFECT_CHRONOBOOSTENERGYCOST, targets[0]
+                    )
+
     async def on_unit_created(self, unit: Unit) -> None:
         await super(MyBot, self).on_unit_created(unit)
 
         if unit.type_id in {UnitID.ORACLE}:
             self.mediator.assign_role(tag=unit.tag, role=UnitRole.HARASSING)
-        elif unit.type_id == UnitID.ADEPT:
+        elif unit.type_id == UnitID.ADEPT and not self.mediator.get_enemy_ling_rushed:
             self.mediator.assign_role(tag=unit.tag, role=UnitRole.CONTROL_GROUP_ONE)
         elif unit.type_id == UnitID.ADEPTPHASESHIFT:
             self.mediator.assign_role(tag=unit.tag, role=UnitRole.CONTROL_GROUP_TWO)

@@ -72,6 +72,8 @@ class CombatManager(Manager):
     @property_cache_once_per_frame
     def attack_target(self) -> Point2:
         """Quick attack target implementation, improve this later."""
+        if self.manager_mediator.get_enemy_ling_rushed and self.ai.time < 240.0:
+            return self.ai.main_base_ramp.top_center
         enemy_structure_pos: Optional[Point2] = None
         if enemy_structures := self.ai.enemy_structures.filter(
             lambda s: s.type_id
