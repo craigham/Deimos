@@ -1,8 +1,5 @@
 from typing import Optional
 
-from sc2.ids.ability_id import AbilityId
-from sc2.units import Units
-
 from ares import AresBot, Hub, ManagerMediator, UnitRole
 from ares.behaviors.macro import (
     AutoSupply,
@@ -12,12 +9,15 @@ from ares.behaviors.macro import (
     SpawnController,
 )
 from loguru import logger
+from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.unit import Unit
+from sc2.units import Units
 
 from bot.managers.adept_harass_manager import AdeptHarassManager
 from bot.managers.combat_manager import CombatManager
 from bot.managers.oracle_manager import OracleManager
+from bot.managers.phoenix_manager import PhoenixManager
 from bot.managers.worker_defence_manager import WorkerDefenceManager
 
 
@@ -50,6 +50,15 @@ class MyBot(AresBot):
             UnitID.STALKER: {"proportion": 0.9, "priority": 2},
         }
 
+    @property
+    def stalker_immortal_phoenix_comp(self) -> dict:
+        return {
+            UnitID.OBSERVER: {"proportion": 0.01, "priority": 2},
+            UnitID.IMMORTAL: {"proportion": 0.1, "priority": 1},
+            UnitID.STALKER: {"proportion": 0.65, "priority": 3},
+            UnitID.PHOENIX: {"proportion": 0.24, "priority": 0},
+        }
+
     def register_managers(self) -> None:
         """
         Override the default `register_managers` in Ares, so we can
@@ -64,6 +73,7 @@ class MyBot(AresBot):
                 AdeptHarassManager(self, self.config, manager_mediator),
                 CombatManager(self, self.config, manager_mediator),
                 OracleManager(self, self.config, manager_mediator),
+                PhoenixManager(self, self.config, manager_mediator),
                 WorkerDefenceManager(self, self.config, manager_mediator),
             ],
         )
@@ -73,21 +83,12 @@ class MyBot(AresBot):
     async def on_step(self, iteration: int) -> None:
         await super(MyBot, self).on_step(iteration)
 
-        self.register_behavior(Mining(flee_at_health_perc=1.0))
+        self.register_behavior(Mining())
         if self.build_order_runner.build_completed:
-
             if self.mediator.get_enemy_ling_rushed and self.time < 270.0:
                 self._army_comp = self.adept_only_comp
-                # if [
-                #     c
-                #     for c in self.mediator.get_own_structures_dict[
-                #         UnitID.CYBERNETICSCORE
-                #     ]
-                #     if c.is_ready
-                # ]:
-                #     self._army_comp = self.adept_only_comp
-                # else:
-                #     self._army_comp = self.zealot_only_comp
+            elif self.build_order_runner.chosen_opening == "PhoenixEconomic":
+                self._army_comp = self.stalker_immortal_phoenix_comp
             else:
                 self._army_comp = self.stalker_immortal_comp
 
@@ -97,7 +98,12 @@ class MyBot(AresBot):
                 ProductionController(self._army_comp, base_location=self.start_location)
             )
             macro_plan.add(
-                SpawnController(self._army_comp, spawn_target=self.mediator.get_own_nat)
+                SpawnController(
+                    self._army_comp,
+                    spawn_target=self.mediator.get_own_nat,
+                    freeflow_mode=self.minerals > 500 and self.vespene > 500,
+                    ignore_proportions_below_unit_count=11,
+                )
             )
 
             self.register_behavior(macro_plan)
@@ -128,17 +134,11 @@ class MyBot(AresBot):
             logger.info(f"{self.time_formatted}: Setting BO Completed")
             self.build_order_runner.set_build_completed()
 
-        if (
-            self.can_afford(UnitID.PROBE)
-            and self.townhalls.idle
-            and self.supply_workers < 44
-        ):
-            self.train(UnitID.PROBE)
-
+        if self.build_order_runner.build_completed:
             if (
-                self.supply_workers < 42
-                and self.can_afford(UnitID.PROBE)
-                and len(self.townhalls) >= 2
+                self.can_afford(UnitID.PROBE)
+                and self.townhalls.idle
+                and self.supply_workers < 60
             ):
                 self.train(UnitID.PROBE)
 
@@ -155,16 +155,28 @@ class MyBot(AresBot):
     async def on_unit_created(self, unit: Unit) -> None:
         await super(MyBot, self).on_unit_created(unit)
 
-        if unit.type_id in {UnitID.ORACLE}:
-            self.mediator.assign_role(tag=unit.tag, role=UnitRole.HARASSING)
-        elif unit.type_id == UnitID.ADEPT and not self.mediator.get_enemy_ling_rushed:
-            self.mediator.assign_role(tag=unit.tag, role=UnitRole.CONTROL_GROUP_ONE)
-        elif unit.type_id == UnitID.ADEPTPHASESHIFT:
-            self.mediator.assign_role(tag=unit.tag, role=UnitRole.CONTROL_GROUP_TWO)
+        type_id: UnitID = unit.type_id
+        # don't assign worker a role, ares does this already
+        if type_id == UnitID.PROBE:
+            return
 
-        # assign all other units to ATTACKING role by default
-        elif unit.type_id != UnitID.PROBE:
-            self.mediator.assign_role(tag=unit.tag, role=UnitRole.ATTACKING)
+        role: UnitRole
+        match type_id:
+            case UnitID.ADEPT:
+                if self.mediator.get_enemy_ling_rushed:
+                    role = UnitRole.ATTACKING
+                else:
+                    role = UnitRole.CONTROL_GROUP_ONE
+            case UnitID.ADEPTPHASESHIFT:
+                role = UnitRole.CONTROL_GROUP_TWO
+            case UnitID.ORACLE:
+                role = UnitRole.HARASSING_ORACLE
+            case UnitID.PHOENIX:
+                role = UnitRole.HARASSING_PHOENIX
+            case _:
+                role = UnitRole.ATTACKING
+
+        self.mediator.assign_role(tag=unit.tag, role=role)
 
     """
     Can use `python-sc2` hooks as usual, but make a call the inherited method in the superclass

@@ -13,7 +13,7 @@ AutoUploadToAiarena: True
 UseData: False
 Debug: False
 GameStep: 2
-DebugGameStep: 2
+DebugGameStep: 4
 
 DebugOptions:
     # one of: Air, AirVsGround, Ground, GroundAvoidance, AirAvoidance
@@ -22,3 +22,4 @@ DebugOptions:
     DebugSpawn: False
     ShowPathingCost: False
     ResourceDebug: False
+    ShowBuildingFormation: False

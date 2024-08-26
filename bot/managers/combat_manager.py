@@ -22,7 +22,6 @@ from ares.consts import (
 )
 from ares.managers.manager import Manager
 from ares.managers.squad_manager import UnitSquad
-from cython_extensions import cy_distance_to_squared, cy_pick_enemy_target
 from cython_extensions.units_utils import (
     cy_closest_to,
     cy_find_units_center_mass,
@@ -39,6 +38,7 @@ from bot.combat.adept_harass import AdeptHarass
 from bot.combat.adept_shade_harass import AdeptShadeHarass
 from bot.combat.base_unit import BaseUnit
 from bot.consts import COMMON_UNIT_IGNORE_TYPES
+from cython_extensions import cy_distance_to_squared, cy_pick_enemy_target
 
 if TYPE_CHECKING:
     from ares import AresBot

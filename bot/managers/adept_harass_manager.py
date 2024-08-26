@@ -5,7 +5,6 @@ from ares import ManagerMediator
 from ares.consts import TOWNHALL_TYPES, EngagementResult, UnitRole, UnitTreeQueryType
 from ares.managers.manager import Manager
 from ares.managers.squad_manager import UnitSquad
-from cython_extensions import cy_distance_to_squared
 from cython_extensions.units_utils import cy_closest_to
 from map_analyzer import MapData
 from sc2.ids.ability_id import AbilityId
@@ -17,6 +16,7 @@ from sc2.units import Units
 from bot.combat.adept_harass import AdeptHarass
 from bot.combat.adept_shade_harass import AdeptShadeHarass
 from bot.combat.base_unit import BaseUnit
+from cython_extensions import cy_distance_to_squared
 
 if TYPE_CHECKING:
     from ares import AresBot

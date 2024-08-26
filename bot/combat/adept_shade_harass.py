@@ -6,13 +6,13 @@ from ares import ManagerMediator
 from ares.behaviors.combat import CombatManeuver
 from ares.behaviors.combat.group import GroupUseAbility, PathGroupToTarget
 from ares.managers.squad_manager import UnitSquad
-from cython_extensions import cy_attack_ready
 from sc2.ids.ability_id import AbilityId
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
 
 from bot.combat.base_unit import BaseUnit
+from cython_extensions import cy_attack_ready
 
 if TYPE_CHECKING:
     from ares import AresBot

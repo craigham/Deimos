@@ -6,7 +6,6 @@ from ares import ManagerMediator, UnitTreeQueryType
 from ares.behaviors.combat import CombatManeuver
 from ares.behaviors.combat.individual import KeepUnitSafe, PathUnitToTarget, UseAbility
 from ares.dicts.unit_data import UNIT_DATA
-from cython_extensions import cy_closest_to, cy_distance_to, cy_pick_enemy_target
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.buff_id import BuffId
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
@@ -16,6 +15,7 @@ from sc2.units import Units
 
 from bot.behaviors.oracle_kite_forward import OracleKiteForward
 from bot.combat.base_unit import BaseUnit
+from cython_extensions import cy_closest_to, cy_distance_to, cy_pick_enemy_target
 
 if TYPE_CHECKING:
     from ares import AresBot

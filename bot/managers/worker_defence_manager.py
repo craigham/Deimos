@@ -3,13 +3,13 @@ from typing import TYPE_CHECKING
 from ares import ManagerMediator
 from ares.consts import WORKER_TYPES, UnitRole, UnitTreeQueryType
 from ares.managers.manager import Manager
-from cython_extensions import cy_center, cy_distance_to_squared
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.unit import Unit
 from sc2.units import Units
 
 from bot.combat.base_unit import BaseUnit
 from bot.combat.worker_defenders import WorkerDefenders
+from cython_extensions import cy_center, cy_distance_to_squared
 
 if TYPE_CHECKING:
     from ares import AresBot

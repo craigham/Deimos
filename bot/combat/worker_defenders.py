@@ -6,6 +6,12 @@ from ares.behaviors.combat.individual import KeepUnitSafe, WorkerKiteBack
 from ares.cache import property_cache_once_per_frame
 from ares.consts import ALL_STRUCTURES, WORKER_TYPES, UnitTreeQueryType
 from ares.managers.manager_mediator import ManagerMediator
+from sc2.ids.unit_typeid import UnitTypeId as UnitID
+from sc2.position import Point2
+from sc2.unit import Unit
+from sc2.units import Units
+
+from bot.combat.base_unit import BaseUnit
 from cython_extensions import (
     cy_attack_ready,
     cy_center,
@@ -14,12 +20,6 @@ from cython_extensions import (
     cy_in_attack_range,
     cy_pick_enemy_target,
 )
-from sc2.ids.unit_typeid import UnitTypeId as UnitID
-from sc2.position import Point2
-from sc2.unit import Unit
-from sc2.units import Units
-
-from bot.combat.base_unit import BaseUnit
 
 if TYPE_CHECKING:
     from ares import AresBot

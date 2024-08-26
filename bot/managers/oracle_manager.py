@@ -111,7 +111,7 @@ class OracleManager(Manager):
         # decide if harassers should switch to scouting
         if not self.oracle_harass_active:
             if harass_oracles := self.manager_mediator.get_units_from_role(
-                role=UnitRole.HARASSING, unit_type=UnitID.ORACLE
+                role=UnitRole.HARASSING_ORACLE
             ):
                 self.manager_mediator.batch_assign_role(
                     tags=harass_oracles.tags, role=UnitRole.SCOUTING
@@ -119,7 +119,7 @@ class OracleManager(Manager):
 
     def _control_oracles(self):
         if harass_oracles := self.manager_mediator.get_units_from_role(
-            role=UnitRole.HARASSING, unit_type=UnitID.ORACLE
+            role=UnitRole.HARASSING_ORACLE
         ):
             self._oracle_harass.execute(
                 harass_oracles, oracle_to_weapon_ready=self.oracle_to_weapon_ready

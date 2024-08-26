@@ -7,7 +7,7 @@ BuildChoices:
     test_123:
         BotName: Test
         Cycle:
-            - Test
+            - PhoenixEconomic
 
     Protoss:
         BotName: ProtossRace
@@ -22,7 +22,7 @@ BuildChoices:
     Terran:
         BotName: TerranRace
         Cycle:
-            - AdeptOracle
+            - PhoenixEconomic
 
     Zerg:
         BotName: ZergRace
@@ -77,4 +77,40 @@ Builds:
             - 22 adept *2
             - 22 roboticsfacility
             - 22 gas
+    PhoenixEconomic:
+        # 1:26 - core starts, 320 min, 8 gas
+        # 2:00 - adept starts, 95 min, 98 gas, 25 supply
+        # 2:32 - stargate starts, 85min, 16 gas, 29 supply
+        # 4:00 scout - if enemy expanded, and has 1/1/1
+        # and extra production - we are safe
+        ConstantWorkerProductionTill: 50
+        AutoSupplyAtSupply: 44
+        OpeningBuildOrder:
+            - 13 pylon
+            - 14 gate
+            - 15 chrono @ nexus
+            - 16 gas
+            - 15 worker_scout:
+                [ nat, enemy_spawn ]
+            - 18 core
+            - 19 pylon
+            - 19 nexus
+            - 21 adept
+            - 21 chrono @ gateway
+            - 21 gas
+            - 20 adept
+            - 20 chrono @ gateway
+            - 20 stargate
+            - 20 warpgateresearch
+            - 20 stalker
+            - 20 pylon @ nat
+            - 20 phoenix
+            - 20 chrono @ stargate
+            - 20 gateway
+            - 20 pylon
+            - 20 phoenix
+            - 20 gas
+            - 20 gas
+            - 20 phoenix
+            - 20 nexus
 

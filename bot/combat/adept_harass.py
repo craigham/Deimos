@@ -15,13 +15,6 @@ from ares.behaviors.combat.individual import (
 from ares.consts import VICTORY_DECISIVE_OR_BETTER, EngagementResult
 from ares.dicts.unit_data import UNIT_DATA
 from ares.managers.squad_manager import UnitSquad
-from cython_extensions import (
-    cy_attack_ready,
-    cy_closest_to,
-    cy_distance_to,
-    cy_in_attack_range,
-    cy_pick_enemy_target,
-)
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.buff_id import BuffId
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
@@ -32,6 +25,13 @@ from src.ares.consts import ALL_STRUCTURES, WORKER_TYPES
 
 from bot.combat.base_unit import BaseUnit
 from bot.consts import COMMON_UNIT_IGNORE_TYPES
+from cython_extensions import (
+    cy_attack_ready,
+    cy_closest_to,
+    cy_distance_to,
+    cy_in_attack_range,
+    cy_pick_enemy_target,
+)
 
 if TYPE_CHECKING:
     from ares import AresBot
