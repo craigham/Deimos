@@ -69,10 +69,26 @@ class CombatManager(Manager):
         self.expansions_generator = None
         self.current_base_target: Point2 = self.ai.enemy_start_locations[0]
 
+    @property
+    def enemy_rushed(self) -> bool:
+        # TODO: engineer this to make it available to other classes
+        #   Currently replicated in main.py
+        return (
+            self.ai.mediator.get_enemy_ling_rushed
+            or (self.ai.mediator.get_enemy_marauder_rush and self.ai.time < 150.0)
+            or self.ai.mediator.get_enemy_marine_rush
+            or self.ai.mediator.get_is_proxy_zealot
+            or self.ai.mediator.get_enemy_ravager_rush
+            or self.ai.mediator.get_enemy_went_marine_rush
+            or self.ai.mediator.get_enemy_four_gate
+            or self.ai.mediator.get_enemy_roach_rushed
+            or self.ai.mediator.get_enemy_worker_rushed
+        )
+
     @property_cache_once_per_frame
     def attack_target(self) -> Point2:
         """Quick attack target implementation, improve this later."""
-        if self.manager_mediator.get_enemy_ling_rushed and self.ai.time < 240.0:
+        if self.enemy_rushed and self.ai.time < 240.0:
             return self.ai.main_base_ramp.top_center
         enemy_structure_pos: Optional[Point2] = None
         if enemy_structures := self.ai.enemy_structures.filter(

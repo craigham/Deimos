@@ -1,5 +1,7 @@
 from typing import Optional
 
+from cython_extensions import cy_distance_to_squared
+
 from ares import AresBot, Hub, ManagerMediator, UnitRole
 from ares.behaviors.macro import (
     AutoSupply,
@@ -14,6 +16,7 @@ from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.unit import Unit
 from sc2.units import Units
 
+from ares.consts import GAS_BUILDINGS
 from bot.managers.adept_harass_manager import AdeptHarassManager
 from bot.managers.combat_manager import CombatManager
 from bot.managers.oracle_manager import OracleManager
@@ -51,6 +54,13 @@ class MyBot(AresBot):
         }
 
     @property
+    def stalker_immortal_no_observer(self) -> dict:
+        return {
+            UnitID.IMMORTAL: {"proportion": 0.1, "priority": 1},
+            UnitID.STALKER: {"proportion": 0.9, "priority": 0},
+        }
+
+    @property
     def stalker_immortal_phoenix_comp(self) -> dict:
         return {
             UnitID.OBSERVER: {"proportion": 0.01, "priority": 2},
@@ -58,6 +68,22 @@ class MyBot(AresBot):
             UnitID.STALKER: {"proportion": 0.65, "priority": 3},
             UnitID.PHOENIX: {"proportion": 0.24, "priority": 0},
         }
+
+    @property
+    def enemy_rushed(self) -> bool:
+        # TODO: engineer this to make it available to other classes
+        #   Currently replicated in combat manager
+        return (
+            self.mediator.get_enemy_ling_rushed
+            or (self.mediator.get_enemy_marauder_rush and self.time < 150.0)
+            or self.mediator.get_enemy_marine_rush
+            or self.mediator.get_is_proxy_zealot
+            or self.mediator.get_enemy_ravager_rush
+            or self.mediator.get_enemy_went_marine_rush
+            or self.mediator.get_enemy_four_gate
+            or self.mediator.get_enemy_roach_rushed
+            or self.mediator.get_enemy_worker_rushed
+        )
 
     def register_managers(self) -> None:
         """
@@ -87,6 +113,8 @@ class MyBot(AresBot):
         if self.build_order_runner.build_completed:
             if self.mediator.get_enemy_ling_rushed and self.time < 270.0:
                 self._army_comp = self.adept_only_comp
+            elif self.mediator.get_enemy_went_marine_rush and self.time < 330.0:
+                self._army_comp = self.stalker_immortal_no_observer
             elif self.build_order_runner.chosen_opening == "PhoenixEconomic":
                 self._army_comp = self.stalker_immortal_phoenix_comp
             else:
@@ -108,17 +136,7 @@ class MyBot(AresBot):
 
             self.register_behavior(macro_plan)
 
-        if not self.build_order_runner.build_completed and (
-            self.mediator.get_enemy_ling_rushed
-            or (self.mediator.get_enemy_marauder_rush and self.time < 150.0)
-            or self.mediator.get_enemy_marine_rush
-            or self.mediator.get_is_proxy_zealot
-            or self.mediator.get_enemy_ravager_rush
-            or self.mediator.get_enemy_went_marine_rush
-            or self.mediator.get_enemy_four_gate
-            or self.mediator.get_enemy_roach_rushed
-            or self.mediator.get_enemy_worker_rushed
-        ):
+        if not self.build_order_runner.build_completed and self.enemy_rushed:
             self._enemy_rushed = True
             if self.mediator.get_enemy_roach_rushed:
                 for th in self.townhalls.not_ready:
@@ -135,10 +153,11 @@ class MyBot(AresBot):
             self.build_order_runner.set_build_completed()
 
         if self.build_order_runner.build_completed:
+            max_probes: int = min(66, 22 * len(self.townhalls))
             if (
                 self.can_afford(UnitID.PROBE)
                 and self.townhalls.idle
-                and self.supply_workers < 60
+                and self.supply_workers < max_probes
             ):
                 self.train(UnitID.PROBE)
 
@@ -151,6 +170,53 @@ class MyBot(AresBot):
                     available_nexuses[0](
                         AbilityId.EFFECT_CHRONOBOOSTENERGYCOST, targets[0]
                     )
+
+            num_gas: int = (
+                len(self.gas_buildings)
+                + self.mediator.get_building_counter[UnitID.ASSIMILATOR]
+            )
+
+            if self.supply_workers > 20:
+                gas_required: int
+                if self.supply_workers >= 48:
+                    gas_required = 6
+                else:
+                    gas_required = 3
+                if self.minerals > 1000:
+                    gas_required = 60
+                elif self.minerals > 450:
+                    gas_required = 8
+                elif self.minerals > 250:
+                    gas_required = 7
+                max_pending: int = 1 if self.supply_workers < 60 else 3
+                if (
+                    num_gas < gas_required
+                    and self.mediator.get_building_counter[UnitID.ASSIMILATOR]
+                    < max_pending
+                    and self.minerals > 35
+                ):
+                    self._add_gas()
+
+    def _add_gas(self):
+        existing_gas_buildings: Units = self.structures(GAS_BUILDINGS)
+        if available_geysers := self.vespene_geyser.filter(
+            lambda g: not existing_gas_buildings.closer_than(5.0, g)
+            and self.townhalls.closer_than(12.0, g)
+            and [
+                th
+                for th in self.townhalls
+                if th.build_progress > 0.92
+                and cy_distance_to_squared(th.position, g.position) < 144.0
+            ]
+        ):
+            if worker := self.mediator.select_worker(
+                target_position=self.start_location, force_close=True
+            ):
+                self.mediator.build_with_specific_worker(
+                    worker=worker,
+                    structure_type=UnitID.ASSIMILATOR,
+                    pos=available_geysers[0],
+                )
 
     async def on_unit_created(self, unit: Unit) -> None:
         await super(MyBot, self).on_unit_created(unit)

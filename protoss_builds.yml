@@ -92,7 +92,7 @@ Builds:
             - 16 gas
             - 15 worker_scout:
                 [ nat, enemy_spawn ]
-            - 18 core
+            - 19 core
             - 19 pylon
             - 19 nexus
             - 21 adept
