@@ -75,7 +75,7 @@ class MyBot(AresBot):
         #   Currently replicated in combat manager
         return (
             self.mediator.get_enemy_ling_rushed
-            or (self.mediator.get_enemy_marauder_rush and self.time < 150.0)
+            or self.mediator.get_enemy_marauder_rush
             or self.mediator.get_enemy_marine_rush
             or self.mediator.get_is_proxy_zealot
             or self.mediator.get_enemy_ravager_rush
@@ -113,7 +113,7 @@ class MyBot(AresBot):
         if self.build_order_runner.build_completed:
             if self.mediator.get_enemy_ling_rushed and self.time < 270.0:
                 self._army_comp = self.adept_only_comp
-            elif self.mediator.get_enemy_went_marine_rush and self.time < 330.0:
+            elif self._enemy_rushed and self.time < 330.0:
                 self._army_comp = self.stalker_immortal_no_observer
             elif self.build_order_runner.chosen_opening == "PhoenixEconomic":
                 self._army_comp = self.stalker_immortal_phoenix_comp

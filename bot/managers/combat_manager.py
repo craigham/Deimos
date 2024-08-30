@@ -75,7 +75,7 @@ class CombatManager(Manager):
         #   Currently replicated in main.py
         return (
             self.ai.mediator.get_enemy_ling_rushed
-            or (self.ai.mediator.get_enemy_marauder_rush and self.ai.time < 150.0)
+            or self.ai.mediator.get_enemy_marauder_rush
             or self.ai.mediator.get_enemy_marine_rush
             or self.ai.mediator.get_is_proxy_zealot
             or self.ai.mediator.get_enemy_ravager_rush
