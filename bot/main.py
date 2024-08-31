@@ -1,6 +1,6 @@
 from typing import Optional
 
-from cython_extensions import cy_distance_to_squared
+from cython_extensions import cy_distance_to_squared, cy_closest_to
 
 from ares import AresBot, Hub, ManagerMediator, UnitRole
 from ares.behaviors.macro import (
@@ -10,13 +10,14 @@ from ares.behaviors.macro import (
     ProductionController,
     SpawnController,
 )
+
 from loguru import logger
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.unit import Unit
 from sc2.units import Units
 
-from ares.consts import GAS_BUILDINGS
+from ares.consts import GAS_BUILDINGS, UnitTreeQueryType, WORKER_TYPES, ALL_STRUCTURES
 from bot.managers.adept_harass_manager import AdeptHarassManager
 from bot.managers.combat_manager import CombatManager
 from bot.managers.oracle_manager import OracleManager
@@ -85,6 +86,14 @@ class MyBot(AresBot):
             or self.mediator.get_enemy_worker_rushed
         )
 
+    @property
+    def proxies(self) -> list[Unit]:
+        return [
+            s
+            for s in self.enemy_structures
+            if cy_distance_to_squared(s.position, self.mediator.get_own_nat) < 4900.0
+        ]
+
     def register_managers(self) -> None:
         """
         Override the default `register_managers` in Ares, so we can
@@ -110,6 +119,9 @@ class MyBot(AresBot):
         await super(MyBot, self).on_step(iteration)
 
         self.register_behavior(Mining())
+
+        self._probe_proxy_denier()
+
         if self.build_order_runner.build_completed:
             if self.mediator.get_enemy_ling_rushed and self.time < 270.0:
                 self._army_comp = self.adept_only_comp
@@ -141,13 +153,15 @@ class MyBot(AresBot):
             if self.mediator.get_enemy_roach_rushed:
                 for th in self.townhalls.not_ready:
                     self.mediator.cancel_structure(structure=th)
-            worker_scouts: Units = self.mediator.get_units_from_role(
-                role=UnitRole.BUILD_RUNNER_SCOUT, unit_type=self.worker_type
-            )
-            for scout in worker_scouts:
-                # issue custom commands
-                self.mediator.assign_role(tag=scout.tag, role=UnitRole.GATHERING)
-                scout.gather(self.mineral_field.closest_to(self.start_location))
+
+            if not self.proxies:
+                worker_scouts: Units = self.mediator.get_units_from_role(
+                    role=UnitRole.BUILD_RUNNER_SCOUT, unit_type=self.worker_type
+                )
+                for scout in worker_scouts:
+                    # issue custom commands
+                    self.mediator.assign_role(tag=scout.tag, role=UnitRole.GATHERING)
+                    scout.gather(self.mineral_field.closest_to(self.start_location))
 
             logger.info(f"{self.time_formatted}: Setting BO Completed")
             self.build_order_runner.set_build_completed()
@@ -243,6 +257,49 @@ class MyBot(AresBot):
                 role = UnitRole.ATTACKING
 
         self.mediator.assign_role(tag=unit.tag, role=role)
+
+    def _probe_proxy_denier(self):
+        if self.proxies:
+            worker_scouts: Units = self.mediator.get_units_from_role(
+                role=UnitRole.BUILD_RUNNER_SCOUT, unit_type=self.worker_type
+            )
+            for scout in worker_scouts:
+                self.mediator.assign_role(tag=scout.tag, role=UnitRole.SCOUTING)
+
+        if probes := self.mediator.get_units_from_role(
+            role=UnitRole.SCOUTING, unit_type=UnitID.PROBE
+        ):
+            ground_near_workers: dict[int, Units] = self.mediator.get_units_in_range(
+                start_points=probes,
+                distances=15,
+                query_tree=UnitTreeQueryType.EnemyGround,
+                return_as_dict=True,
+            )
+            for probe in probes:
+                enemy_near_worker: Units = ground_near_workers[probe.tag]
+                if probe.shield_percentage < 0.1:
+                    self.mediator.assign_role(tag=probe.tag, role=UnitRole.GATHERING)
+                elif enemy_workers := [
+                    u
+                    for u in enemy_near_worker
+                    if u.type_id in WORKER_TYPES
+                    and cy_distance_to_squared(u.position, self.mediator.get_enemy_nat)
+                    > 2600.0
+                ]:
+                    probe.attack(cy_closest_to(probe.position, enemy_workers))
+                    continue
+
+                elif structures := [
+                    u
+                    for u in enemy_near_worker
+                    if u.type_id in ALL_STRUCTURES
+                    and cy_distance_to_squared(u.position, self.mediator.get_enemy_nat)
+                    > 1600.0
+                ]:
+                    probe.attack(cy_closest_to(probe.position, structures))
+
+                else:
+                    self.mediator.assign_role(tag=probe.tag, role=UnitRole.GATHERING)
 
     """
     Can use `python-sc2` hooks as usual, but make a call the inherited method in the superclass
