@@ -103,6 +103,16 @@ class AdeptHarassManager(Manager):
         -------
 
         """
+        # on this opening we hold back till adept timing
+        if self.ai.build_order_runner.chosen_opening == "AdeptVoidray" and self.ai.time < 285.0:
+            for adept in adepts:
+                adept_tag: int = adept.tag
+                self._adept_targets[adept_tag] = self.ai.main_base_ramp.top_center
+                if adept_tag in self._adept_to_phase:
+                    if shade := self.ai.unit_tag_dict.get(self._adept_to_phase[adept_tag]):
+                        self._shade_targets[shade.tag] = self.ai.main_base_ramp.top_center
+
+            return
 
         map_data: MapData = self.manager_mediator.get_map_data_object
         # find all potential places we can harass

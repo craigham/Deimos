@@ -36,6 +36,7 @@ from sc2.units import Units
 
 from bot.combat.adept_harass import AdeptHarass
 from bot.combat.adept_shade_harass import AdeptShadeHarass
+from bot.combat.defensive_voidrays import DefensiveVoidrays
 from bot.combat.base_unit import BaseUnit
 from bot.consts import COMMON_UNIT_IGNORE_TYPES
 from cython_extensions import cy_distance_to_squared, cy_pick_enemy_target
@@ -45,6 +46,8 @@ if TYPE_CHECKING:
 
 
 class CombatManager(Manager):
+    defensive_voidrays: BaseUnit
+
     def __init__(
         self,
         ai: "AresBot",
@@ -69,6 +72,11 @@ class CombatManager(Manager):
         self.expansions_generator = None
         self.current_base_target: Point2 = self.ai.enemy_start_locations[0]
 
+    def initialise(self) -> None:
+        self.defensive_voidrays: BaseUnit = DefensiveVoidrays(
+            self.ai, self.config, self.ai.mediator
+        )
+
     @property
     def enemy_rushed(self) -> bool:
         # TODO: engineer this to make it available to other classes
@@ -90,6 +98,7 @@ class CombatManager(Manager):
         """Quick attack target implementation, improve this later."""
         if self.enemy_rushed and self.ai.time < 240.0:
             return self.ai.main_base_ramp.top_center
+
         enemy_structure_pos: Optional[Point2] = None
         if enemy_structures := self.ai.enemy_structures.filter(
             lambda s: s.type_id
@@ -148,6 +157,10 @@ class CombatManager(Manager):
             return self.current_base_target
 
     async def update(self, iteration: int) -> None:
+        self._handle_attackers()
+        self._handle_defenders()
+
+    def _handle_attackers(self):
         grid: np.ndarray = self.manager_mediator.get_ground_grid
         army: Units = self.manager_mediator.get_units_from_role(role=UnitRole.ATTACKING)
         near_enemy: dict[int, Units] = self.manager_mediator.get_units_in_range(
@@ -203,3 +216,13 @@ class CombatManager(Manager):
 
             # DON'T FORGET TO REGISTER OUR COMBAT MANEUVER!!
             self.ai.register_behavior(attacking_maneuver)
+
+    def _handle_defenders(self):
+        """
+        We only have defensive voids currently
+        """
+        grid: np.ndarray = self.manager_mediator.get_air_grid
+        voids: Units = self.manager_mediator.get_units_from_role(
+            role=UnitRole.DEFENDING, unit_type=UnitID.VOIDRAY
+        )
+        self.defensive_voidrays.execute(voids, grid=grid)

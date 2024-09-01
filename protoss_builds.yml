@@ -7,7 +7,7 @@ BuildChoices:
     test_123:
         BotName: Test
         Cycle:
-            - PhoenixEconomic
+            - AdeptVoidray
 
     Protoss:
         BotName: ProtossRace
@@ -17,7 +17,7 @@ BuildChoices:
     Random:
         BotName: RandomRace
         Cycle:
-            - AdeptOracle
+            - AdeptVoidray
 
     Terran:
         BotName: TerranRace
@@ -27,7 +27,7 @@ BuildChoices:
     Zerg:
         BotName: ZergRace
         Cycle:
-            - AdeptOracle
+            - AdeptVoidray
 
 Builds:
     Test:
@@ -77,6 +77,35 @@ Builds:
             - 22 adept *2
             - 22 roboticsfacility
             - 22 gas
+    AdeptVoidray:
+        ConstantWorkerProductionTill: 44
+        AutoSupplyAtSupply: 24
+        OpeningBuildOrder:
+            - 14 pylon
+            - 15 gate
+            - 15 chrono @ nexus
+            - 16 gas
+            - 15 worker_scout:
+                [ enemy_spawn ]
+            - 20 nexus
+            - 20 core
+            - 20 gas
+            - 21 pylon
+            - 21 adept
+            - 21 chrono @ gateway
+            - 24 stargate
+            - 24 warpgateresearch
+            - 24 adept
+            - 26 voidray
+            - 26 chrono @ stargate
+            - 30 twilightcouncil
+            - 32 gateway *3
+            - 32 adeptpiercingattack
+            - 32 chrono @ twilightcouncil
+            - 34 nexus
+            - 34 adept *6
+            - 34 gas *2
+            - 34 adept *2
     PhoenixEconomic:
         # 1:26 - core starts, 320 min, 8 gas
         # 2:00 - adept starts, 95 min, 98 gas, 25 supply

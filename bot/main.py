@@ -142,7 +142,7 @@ class MyBot(AresBot):
                     self._army_comp,
                     spawn_target=self.mediator.get_own_nat,
                     freeflow_mode=self.minerals > 500 and self.vespene > 500,
-                    ignore_proportions_below_unit_count=11,
+                    ignore_proportions_below_unit_count=4,
                 )
             )
 
@@ -253,6 +253,11 @@ class MyBot(AresBot):
                 role = UnitRole.HARASSING_ORACLE
             case UnitID.PHOENIX:
                 role = UnitRole.HARASSING_PHOENIX
+            case UnitID.VOIDRAY:
+                if self.supply_used < 66:
+                    role = UnitRole.DEFENDING
+                else:
+                    role = UnitRole.ATTACKI
             case _:
                 role = UnitRole.ATTACKING
 
