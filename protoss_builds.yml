@@ -103,7 +103,7 @@ Builds:
             - 16 gas *2
             - 16 pylon
             - 16 core
-            - 16 photoncannon @ ramp *2
+            - 16 photoncannon @ ramp
             - 16 pylon
             - 16 stargate
             - 16 shieldbattery @ ramp
