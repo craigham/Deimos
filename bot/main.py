@@ -166,7 +166,11 @@ class MyBot(AresBot):
 
             self.register_behavior(macro_plan)
 
-        if not self.build_order_runner.build_completed and self.enemy_rushed:
+        if (
+            not self.build_order_runner.build_completed
+            and self.enemy_rushed
+            and self.build_order_runner.chosen_opening != "OneBaseTempests"
+        ):
             self._enemy_rushed = True
             if self.mediator.get_enemy_roach_rushed:
                 for th in self.townhalls.not_ready:
