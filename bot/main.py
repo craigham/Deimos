@@ -71,6 +71,19 @@ class MyBot(AresBot):
         }
 
     @property
+    def stalker_tempests_comp(self) -> dict:
+        return {
+            UnitID.STALKER: {"proportion": 0.75, "priority": 1},
+            UnitID.TEMPEST: {"proportion": 0.25, "priority": 0},
+        }
+
+    @property
+    def tempests_comp(self) -> dict:
+        return {
+            UnitID.TEMPEST: {"proportion": 1.0, "priority": 0},
+        }
+
+    @property
     def enemy_rushed(self) -> bool:
         # TODO: engineer this to make it available to other classes
         #   Currently replicated in combat manager
@@ -123,7 +136,12 @@ class MyBot(AresBot):
         self._probe_proxy_denier()
 
         if self.build_order_runner.build_completed:
-            if self.mediator.get_enemy_ling_rushed and self.time < 270.0:
+            # TODO: Make army comp manager and smarten this up
+            if self.build_order_runner.chosen_opening == "OneBaseTempests":
+                self._army_comp = self.tempests_comp
+            elif self.supply_used > 114:
+                self._army_comp = self.stalker_tempests_comp
+            elif self.mediator.get_enemy_ling_rushed and self.time < 270.0:
                 self._army_comp = self.adept_only_comp
             elif self._enemy_rushed and self.time < 330.0:
                 self._army_comp = self.stalker_immortal_no_observer
@@ -179,11 +197,23 @@ class MyBot(AresBot):
                 th for th in self.townhalls if th.energy >= 50 and th.is_ready
             ]:
                 if targets := [
-                    s for s in self.structures if s.is_ready and not s.is_idle
+                    s
+                    for s in self.structures
+                    if s.is_ready and not s.is_idle and s.type_id
                 ]:
-                    available_nexuses[0](
-                        AbilityId.EFFECT_CHRONOBOOSTENERGYCOST, targets[0]
-                    )
+                    target = None
+                    if self.build_order_runner.chosen_opening == "OneBaseTempests":
+                        for t in targets:
+                            if t.type_id == UnitID.STARGATE:
+                                target = t
+                                break
+                    else:
+                        target = targets[0]
+
+                    if target:
+                        available_nexuses[0](
+                            AbilityId.EFFECT_CHRONOBOOSTENERGYCOST, target
+                        )
 
             num_gas: int = (
                 len(self.gas_buildings)

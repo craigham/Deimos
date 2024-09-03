@@ -111,7 +111,10 @@ class PhoenixHarass(BaseUnit):
                     close_enemy, return_as_lists=True
                 )
                 ground = [g for g in ground if not g.is_structure]
-                lift_ready: bool = AbilityId.GRAVITONBEAM_GRAVITONBEAM in unit.abilities
+                lift_ready: bool = (
+                    unit.shield_percentage > 0.1
+                    and AbilityId.GRAVITONBEAM_GRAVITONBEAM in unit.abilities
+                )
                 # check we have enough around to hit air
                 if lift_ready:
                     lift_ready = len([u for u in close_own if u.can_attack_air]) >= 3
@@ -124,7 +127,10 @@ class PhoenixHarass(BaseUnit):
                 ]
                 maneuver.add(ShootTargetInRange(unit, air))
                 if can_engage:
-                    if air:
+                    if unit.shield_percentage < 0.1:
+                        maneuver.add(KeepUnitSafe(unit, air_grid))
+
+                    elif air:
                         lifted: list[Unit] = [
                             u for u in air if u.has_buff(BuffId.GRAVITONBEAM)
                         ]
@@ -160,7 +166,12 @@ class PhoenixHarass(BaseUnit):
                 else:
                     if not main_squad:
                         maneuver.add(
-                            PathUnitToTarget(unit, air_grid, pos_of_main_squad)
+                            PathUnitToTarget(
+                                unit,
+                                air_grid,
+                                pos_of_main_squad,
+                                success_at_distance=8.0,
+                            )
                         )
                     maneuver.add(KeepUnitSafe(unit, air_grid))
             else:

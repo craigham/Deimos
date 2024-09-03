@@ -161,7 +161,8 @@ class CombatManager(Manager):
         self._handle_defenders()
 
     def _handle_attackers(self):
-        grid: np.ndarray = self.manager_mediator.get_ground_grid
+        air_grid: np.ndarray = self.manager_mediator.get_air_grid
+        ground_grid: np.ndarray = self.manager_mediator.get_ground_grid
         army: Units = self.manager_mediator.get_units_from_role(role=UnitRole.ATTACKING)
         near_enemy: dict[int, Units] = self.manager_mediator.get_units_in_range(
             start_points=army,
@@ -170,6 +171,7 @@ class CombatManager(Manager):
             return_as_dict=True,
         )
         for s in army:
+            grid: np.ndarray = air_grid if s.is_flying else ground_grid
             if s.type_id == UnitID.OBSERVER:
                 s.move(Point2(cy_find_units_center_mass(army, 8.0)[0]))
                 continue
