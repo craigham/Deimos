@@ -2,7 +2,14 @@ from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 from ares import ManagerMediator
-from ares.consts import TOWNHALL_TYPES, EngagementResult, UnitRole, UnitTreeQueryType
+from ares.consts import (
+    TOWNHALL_TYPES,
+    EngagementResult,
+    UnitRole,
+    UnitTreeQueryType,
+    WORKER_TYPES,
+    VICTORY_CLOSE_OR_BETTER,
+)
 from ares.managers.manager import Manager
 from ares.managers.squad_manager import UnitSquad
 from cython_extensions.units_utils import cy_closest_to
@@ -68,8 +75,9 @@ class AdeptHarassManager(Manager):
         grid: np.ndarray = self.manager_mediator.get_ground_grid
 
         self._link_adept_to_shade(adepts, shades)
-
+        cancel_shades_dict: dict = self._check_if_should_cancel_shades()
         self._calculate_adepts_and_phases_target(adepts, grid)
+
         self._adept_harass.execute(
             adepts,
             grid=grid,
@@ -77,6 +85,7 @@ class AdeptHarassManager(Manager):
         )
         self._adept_shade_harass.execute(
             shades,
+            cancel_shades_dict=cancel_shades_dict,
             grid=grid,
             target_dict=self._shade_targets,
         )
@@ -117,7 +126,9 @@ class AdeptHarassManager(Manager):
                     ):
                         self._shade_targets[
                             shade.tag
-                        ] = self.ai.main_base_ramp.top_center
+                        ] = self.ai.main_base_ramp.top_center.towards(
+                            self.ai.start_location, 6.0
+                        )
 
             return
 
@@ -141,7 +152,7 @@ class AdeptHarassManager(Manager):
                 own_units=adepts,
                 enemy_units=self.manager_mediator.get_units_in_range(
                     start_points=[position_to_check],
-                    distances=[15.0],
+                    distances=[16.0],
                     query_tree=UnitTreeQueryType.AllEnemy,
                 )[0],
                 workers_do_no_damage=True,
@@ -193,11 +204,14 @@ class AdeptHarassManager(Manager):
                     self._adept_targets[adept_tag] = least_defended_target
                     if shade:
                         self._shade_targets[shade.tag] = least_defended_target
-                # adept close, shade away incase we need to escape
+                # adept close, may need to shade away incase we need to escape
                 else:
                     self._adept_targets[adept_tag] = least_defended_target
                     if shade:
-                        self._shade_targets[shade.tag] = self.ai.start_location
+                        if best_engagement_result in VICTORY_CLOSE_OR_BETTER:
+                            self._shade_targets[shade.tag] = least_defended_target
+                        else:
+                            self._shade_targets[shade.tag] = self.ai.start_location
             # else we can phase between bases
             else:
                 # adept close to target:
@@ -227,50 +241,62 @@ class AdeptHarassManager(Manager):
                     if shade:
                         self._shade_targets[shade.tag] = least_defended_target
 
-    def _should_cancel_shade(self, squad: UnitSquad) -> bool:
-        squad_id: str = squad.squad_id
-        if squad_id not in self._adept_squad_id_to_phase_squad:
-            return False
+    def _check_if_should_cancel_shades(self) -> dict:
+        cancel_shade_dict: dict[int, bool] = dict()
+        for adept_tag, shade_tag in self._adept_to_phase.items():
+            adept: Unit = self.ai.unit_tag_dict.get(adept_tag)
+            phase: Unit = self.ai.unit_tag_dict.get(shade_tag)
+            if not adept or not phase:
+                continue
 
-        if AbilityId.CANCEL_ADEPTSHADEPHASESHIFT not in squad.squad_units[0].abilities:
-            return False
+            if phase.buff_duration_remain > 10:
+                cancel_shade_dict[phase.tag] = False
+                continue
 
-        associated_phase_squad: UnitSquad = self._adept_squad_id_to_phase_squad[
-            squad.squad_id
-        ]
-        if associated_phase_squad.squad_units[0].buff_duration_remain < 10:
-            return False
+            # ground units near both groups
+            units_near_adepts: Units = self.manager_mediator.get_units_in_range(
+                start_points=[adept.position],
+                distances=[11.0],
+                query_tree=UnitTreeQueryType.EnemyGround,
+            )[0]
 
-        # ground units near both groups
-        units_near_adepts: Units = self.manager_mediator.get_units_in_range(
-            start_points=[squad.squad_position],
-            distances=[11.0],
-            query_tree=UnitTreeQueryType.EnemyGround,
-        )[0]
+            units_near_shades: Units = self.manager_mediator.get_units_in_range(
+                start_points=[phase.position],
+                distances=[11.0],
+                query_tree=UnitTreeQueryType.EnemyGround,
+            )[0]
 
-        units_near_shades: Units = self.manager_mediator.get_units_in_range(
-            start_points=[associated_phase_squad.squad_position],
-            distances=[11.0],
-            query_tree=UnitTreeQueryType.EnemyGround,
-        )[0]
+            own_units: Units = self.manager_mediator.get_units_in_range(
+                start_points=[adept.position],
+                distances=[11.0],
+                query_tree=UnitTreeQueryType.AllOwn,
+            )[0]
 
-        # check current fight result, and potential fight result if shade finishes
-        adept_result: EngagementResult = self.manager_mediator.can_win_fight(
-            own_units=squad.squad_units,
-            enemy_units=units_near_adepts,
-            workers_do_no_damage=True,
-        )
+            own_units_near_shade: Units = self.manager_mediator.get_units_in_range(
+                start_points=[phase.position],
+                distances=[11.0],
+                query_tree=UnitTreeQueryType.AllOwn,
+            )[0]
 
-        potential_result: EngagementResult = self.manager_mediator.can_win_fight(
-            own_units=associated_phase_squad.squad_units,
-            enemy_units=units_near_shades,
-            workers_do_no_damage=True,
-        )
+            # check current fight result, and potential fight result if shade finishes
+            adept_result: EngagementResult = self.manager_mediator.can_win_fight(
+                own_units=own_units,
+                enemy_units=units_near_adepts,
+                workers_do_no_damage=True,
+            )
 
-        # simple scenario, adepts will get a better result fighting where the shades are
-        # don't cancel shade
-        if potential_result.value >= adept_result.value:
-            return False
-        # adepts looking better here?
-        else:
-            return True
+            potential_result: EngagementResult = self.manager_mediator.can_win_fight(
+                own_units=own_units_near_shade,
+                enemy_units=units_near_shades,
+                workers_do_no_damage=True,
+            )
+
+            # simple scenario, adepts will get a better result fighting where the shades are
+            # don't cancel shade
+            if potential_result.value >= adept_result.value:
+                cancel_shade_dict[phase.tag] = False
+            # adepts looking better here?
+            else:
+                cancel_shade_dict[phase.tag] = True
+
+        return cancel_shade_dict

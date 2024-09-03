@@ -30,33 +30,17 @@ BuildChoices:
             - AdeptVoidray
 
 Builds:
-    Test:
-        ConstantWorkerProductionTill: 44
-        AutoSupplyAtSupply: 44
-        OpeningBuildOrder:
-            - 13 pylon
-            - 14 gate
-            - 15 chrono @ nexus
-            - 16 gas
-            - 17 gate
-            - 18 expand
-            - 18 chrono @ nexus
-            - 18 core
-            - 18 gas
-            - 20 pylon
-            - 21 warpgateresearch
-            - 22 gas *2
     AdeptOracle:
         ConstantWorkerProductionTill: 23
         AutoSupplyAtSupply: 44
         OpeningBuildOrder:
-            - 13 pylon
-            - 14 gate
+            - 13 pylon @ ramp
+            - 14 gate @ ramp
             - 15 chrono @ nexus
             - 16 gas
             - 15 worker_scout:
                 [ nat, enemy_spawn ]
-            - 17 gate
+            - 17 gate @ ramp
             - 18 core
             - 18 gas
             - 20 pylon
@@ -81,14 +65,14 @@ Builds:
         ConstantWorkerProductionTill: 44
         AutoSupplyAtSupply: 24
         OpeningBuildOrder:
-            - 14 pylon
-            - 15 gate
+            - 14 pylon @ ramp
+            - 15 gate @ ramp
             - 15 chrono @ nexus
             - 16 gas
             - 15 worker_scout:
                 [ enemy_spawn ]
             - 20 nexus
-            - 20 core
+            - 20 core @ ramp
             - 20 gas
             - 21 pylon
             - 21 adept
@@ -136,13 +120,13 @@ Builds:
         ConstantWorkerProductionTill: 50
         AutoSupplyAtSupply: 44
         OpeningBuildOrder:
-            - 13 pylon
-            - 14 gate
+            - 13 pylon @ ramp
+            - 14 gate @ ramp
             - 15 chrono @ nexus
             - 16 gas
             - 15 worker_scout:
-                [ nat, third, fourth, enemy_spawn ]
-            - 19 core
+                [ third, fourth, fifth, sixth, enemy_spawn ]
+            - 19 core @ ramp
             - 19 pylon
             - 19 nexus
             - 21 adept

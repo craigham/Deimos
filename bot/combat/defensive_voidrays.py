@@ -95,25 +95,33 @@ class DefensiveVoidrays(BaseUnit):
 
             # keep safe from dangerous effects (storms, biles etc)
             maneuver.add(KeepUnitSafe(unit, avoidance_grid))
-
-            if in_attack_range := [
-                u
-                for u in close_enemy
-                if cy_distance_to_squared(unit.position, u.position)
-                < 36.0 + unit.radius + u.radius
-            ]:
-                armoured: list[Unit] = [u for u in in_attack_range if u.is_armored]
-                if armoured:
+            if close_enemy:
+                if in_attack_range := [
+                    u
+                    for u in close_enemy
+                    if cy_distance_to_squared(unit.position, u.position)
+                    < 36.0 + unit.radius + u.radius
+                ]:
+                    armoured: list[Unit] = [u for u in in_attack_range if u.is_armored]
+                    if armoured:
+                        maneuver.add(
+                            UseAbility(
+                                AbilityId.EFFECT_VOIDRAYPRISMATICALIGNMENT, unit, None
+                            )
+                        )
+                        target: Unit = cy_pick_enemy_target(armoured)
+                        maneuver.add(AttackTarget(unit=unit, target=target))
+                    else:
+                        target: Unit = cy_pick_enemy_target(in_attack_range)
+                        maneuver.add(AttackTarget(unit=unit, target=target))
+                else:
                     maneuver.add(
                         UseAbility(
-                            AbilityId.EFFECT_VOIDRAYPRISMATICALIGNMENT, unit, None
+                            AbilityId.ATTACK_ATTACK,
+                            unit,
+                            close_enemy.center,
                         )
                     )
-                    target: Unit = cy_pick_enemy_target(armoured)
-                    maneuver.add(AttackTarget(unit=unit, target=target))
-                else:
-                    target: Unit = cy_pick_enemy_target(in_attack_range)
-                    maneuver.add(AttackTarget(unit=unit, target=target))
 
             target: Point2 = self.current_ol_spot_target
             if enemy_ground_threats:

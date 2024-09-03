@@ -52,8 +52,10 @@ class AdeptShadeHarass(BaseUnit):
         -----------------
         grid : np.ndarray
         target_dict : Dict
+        cancel_shades_dict: Dict
         """
 
+        cancel_shades_dict: dict[int, bool] = kwargs["cancel_shades_dict"]
         grid: np.ndarray = kwargs["grid"]
         target_dict: dict[int, Point2] = kwargs["target_dict"]
 
@@ -62,10 +64,14 @@ class AdeptShadeHarass(BaseUnit):
             target = self.ai.enemy_start_locations[0]
             if unit_tag in target_dict:
                 target = target_dict[unit_tag]
-            # if AbilityId.CANCEL_ADEPTSHADEPHASESHIFT in unit.abilities:
-            #     unit(AbilityId.CANCEL_ADEPTSHADEPHASESHIFT)
-            # else:
-            unit.move(target)
+            if (
+                AbilityId.CANCEL_ADEPTSHADEPHASESHIFT in unit.abilities
+                and unit_tag in cancel_shades_dict
+                and cancel_shades_dict[unit_tag]
+            ):
+                unit(AbilityId.CANCEL_ADEPTSHADEPHASESHIFT)
+            else:
+                unit.move(target)
 
     def _pick_target(self, units: list[Unit], targets: list[Unit]) -> Union[Unit, None]:
         """If all close targets have same health, pick the closest one.
