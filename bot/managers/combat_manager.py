@@ -172,11 +172,16 @@ class CombatManager(Manager):
         )
         for s in army:
             grid: np.ndarray = air_grid if s.is_flying else ground_grid
-            if s.type_id == UnitID.OBSERVER:
+            type_id: UnitID = s.type_id
+            if type_id == UnitID.OBSERVER:
                 s.move(Point2(cy_find_units_center_mass(army, 8.0)[0]))
                 continue
 
             attacking_maneuver: CombatManeuver = CombatManeuver()
+
+            if type_id == UnitID.TEMPEST and s.shield_percentage < 0.3:
+                attacking_maneuver.add(KeepUnitSafe(unit=s, grid=grid))
+
             # we already calculated close enemies, use unit tag to retrieve them
             all_close: Units = near_enemy[s.tag].filter(
                 lambda u: (not u.is_cloaked or u.is_cloaked and u.is_revealed)
@@ -187,7 +192,15 @@ class CombatManager(Manager):
             )
             # enemy around, engagement control
             if all_close:
-                if in_attack_range_e := cy_in_attack_range(s, only_enemy_units):
+                if (
+                    s.is_flying
+                    and s.can_attack_ground
+                    and (danger_to_air := [u for u in all_close if u.can_attack_air])
+                ):
+                    attacking_maneuver.add(
+                        ShootTargetInRange(unit=s, targets=danger_to_air)
+                    )
+                elif in_attack_range_e := cy_in_attack_range(s, only_enemy_units):
                     # `ShootTargetInRange` will check weapon is ready
                     # otherwise it will not execute
                     attacking_maneuver.add(
