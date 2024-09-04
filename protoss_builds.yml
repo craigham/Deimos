@@ -112,11 +112,10 @@ Builds:
             - 16 photoncannon
             - 16 pylon *2
             - 16 tempest
+            - 16 chrono @ stargate
             - 16 tempestgroundattackupgrade
             - 16 photoncannon *2
-            - 16 tempest
             - 16 shieldbattery
-            - 16 photoncannon *2
 
     PhoenixEconomic:
         # 1:26 - core starts, 320 min, 8 gas
