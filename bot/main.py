@@ -1,6 +1,7 @@
 from typing import Optional
 
 from cython_extensions import cy_distance_to_squared, cy_closest_to
+from sc2.ids.buff_id import BuffId
 
 from ares import AresBot, Hub, ManagerMediator, UnitRole
 from ares.behaviors.macro import (
@@ -203,7 +204,11 @@ class MyBot(AresBot):
                 if targets := [
                     s
                     for s in self.structures
-                    if s.is_ready and not s.is_idle and s.type_id
+                    if s.is_ready
+                    and not s.is_idle
+                    and s.type_id
+                    and not s.has_buff(BuffId.CHRONOBOOSTENERGYCOST)
+                    and s.orders[0].progress < 0.4
                 ]:
                     target = None
                     if self.build_order_runner.chosen_opening == "OneBaseTempests":

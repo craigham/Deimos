@@ -66,7 +66,15 @@ class WorkerDefenceManager(Manager):
     @property
     def enabled(self) -> bool:
         return (
-            self.ai.supply_army < 8 and not self.manager_mediator.get_enemy_marine_rush
+            self.ai.supply_army < 8
+            and not self.manager_mediator.get_enemy_marine_rush
+            and not [
+                s
+                for s in self.manager_mediator.get_own_structures_dict[
+                    UnitID.PHOTONCANNON
+                ]
+                if s.is_ready
+            ]
         )
 
     @property
