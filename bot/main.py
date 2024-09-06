@@ -19,7 +19,7 @@ from sc2.unit import Unit
 from sc2.units import Units
 
 from ares.consts import GAS_BUILDINGS, UnitTreeQueryType, WORKER_TYPES, ALL_STRUCTURES
-from bot.managers.adept_harass_manager import AdeptHarassManager
+from bot.managers.adept_manager import AdeptManager
 from bot.managers.combat_manager import CombatManager
 from bot.managers.oracle_manager import OracleManager
 from bot.managers.phoenix_manager import PhoenixManager
@@ -119,7 +119,7 @@ class MyBot(AresBot):
             self.config,
             manager_mediator,
             additional_managers=[
-                AdeptHarassManager(self, self.config, manager_mediator),
+                AdeptManager(self, self.config, manager_mediator),
                 CombatManager(self, self.config, manager_mediator),
                 OracleManager(self, self.config, manager_mediator),
                 PhoenixManager(self, self.config, manager_mediator),

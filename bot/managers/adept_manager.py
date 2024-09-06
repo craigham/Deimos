@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from ares import AresBot
 
 
-class AdeptHarassManager(Manager):
+class AdeptManager(Manager):
     def __init__(
         self,
         ai: "AresBot",
@@ -253,28 +253,70 @@ class AdeptHarassManager(Manager):
                 cancel_shade_dict[phase.tag] = False
                 continue
 
-            # ground units near both groups
+            # ground units near adepts
             units_near_adepts: Units = self.manager_mediator.get_units_in_range(
                 start_points=[adept.position],
-                distances=[11.0],
+                distances=[10.0],
                 query_tree=UnitTreeQueryType.EnemyGround,
             )[0]
 
             units_near_shades: Units = self.manager_mediator.get_units_in_range(
                 start_points=[phase.position],
-                distances=[11.0],
+                distances=[10.0],
                 query_tree=UnitTreeQueryType.EnemyGround,
             )[0]
 
+            num_workers_near_shades: int = len(
+                [
+                    u
+                    for u in units_near_shades
+                    if u.type_id in WORKER_TYPES
+                    and cy_distance_to_squared(phase.position, phase.position) < 39.0
+                ]
+            )
+
+            num_workers_near_adepts: int = len(
+                [
+                    u
+                    for u in units_near_adepts
+                    if u.type_id in WORKER_TYPES
+                    and cy_distance_to_squared(phase.position, phase.position) < 39.0
+                ]
+            )
+
+            # adepts are already in a great spot! cancel shade
+            if (
+                num_workers_near_adepts >= 4
+                and num_workers_near_adepts > num_workers_near_shades
+            ):
+                cancel_shade_dict[phase.tag] = True
+                continue
+
+            # idea here is, if there is nothing threatening ground, then finish shade
+            # or if there happens to be enemy workers near shades
+            if (
+                len(
+                    [
+                        u
+                        for u in units_near_shades
+                        if u.can_attack and u.type_id not in WORKER_TYPES
+                    ]
+                )
+                == 0
+                or num_workers_near_shades >= 4
+            ):
+                cancel_shade_dict[phase.tag] = False
+                continue
+
             own_units: Units = self.manager_mediator.get_units_in_range(
                 start_points=[adept.position],
-                distances=[11.0],
+                distances=[10.0],
                 query_tree=UnitTreeQueryType.AllOwn,
             )[0]
 
             own_units_near_shade: Units = self.manager_mediator.get_units_in_range(
                 start_points=[phase.position],
-                distances=[11.0],
+                distances=[10.0],
                 query_tree=UnitTreeQueryType.AllOwn,
             )[0]
 

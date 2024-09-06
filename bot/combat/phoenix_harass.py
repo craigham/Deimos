@@ -123,7 +123,13 @@ class PhoenixHarass(BaseUnit):
                     u
                     for u in ground
                     if u.type_id
-                    not in {UnitID.BROODLING, UnitID.EGG, UnitID.LARVA, UnitID.ZERGLING}
+                    not in {
+                        UnitID.BROODLING,
+                        UnitID.EGG,
+                        UnitID.LARVA,
+                        UnitID.ZERGLING,
+                        UnitID.MULE,
+                    }
                 ]
                 maneuver.add(ShootTargetInRange(unit, air))
                 if can_engage:
