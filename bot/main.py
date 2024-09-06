@@ -85,6 +85,12 @@ class MyBot(AresBot):
         }
 
     @property
+    def zealot_only(self) -> dict:
+        return {
+            UnitID.ZEALOT: {"proportion": 1.0, "priority": 0},
+        }
+
+    @property
     def enemy_rushed(self) -> bool:
         # TODO: engineer this to make it available to other classes
         #   Currently replicated in combat manager
@@ -132,13 +138,18 @@ class MyBot(AresBot):
     async def on_step(self, iteration: int) -> None:
         await super(MyBot, self).on_step(iteration)
 
-        self.register_behavior(Mining())
+        num_workers_per_gas: int = 3
+        if self.mediator.get_enemy_worker_rushed and self.supply_used < 26:
+            num_workers_per_gas: int = 0
+        self.register_behavior(Mining(workers_per_gas=num_workers_per_gas))
 
         self._probe_proxy_denier()
 
         if self.build_order_runner.build_completed:
             # TODO: Make army comp manager and smarten this up
-            if self.build_order_runner.chosen_opening == "OneBaseTempests":
+            if self.mediator.get_enemy_worker_rushed and self.supply_used < 26:
+                self._army_comp = self.zealot_only
+            elif self.build_order_runner.chosen_opening == "OneBaseTempests":
                 self._army_comp = self.tempests_comp
             elif self.supply_used > 114:
                 self._army_comp = self.stalker_tempests_comp
