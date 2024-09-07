@@ -1,8 +1,5 @@
 from typing import Optional
 
-from cython_extensions import cy_distance_to_squared, cy_closest_to
-from sc2.ids.buff_id import BuffId
-
 from ares import AresBot, Hub, ManagerMediator, UnitRole
 from ares.behaviors.macro import (
     AutoSupply,
@@ -11,19 +8,22 @@ from ares.behaviors.macro import (
     ProductionController,
     SpawnController,
 )
-
+from ares.consts import ALL_STRUCTURES, GAS_BUILDINGS, WORKER_TYPES, UnitTreeQueryType
+from ares.managers.manager import Manager
 from loguru import logger
 from sc2.ids.ability_id import AbilityId
+from sc2.ids.buff_id import BuffId
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.unit import Unit
 from sc2.units import Units
 
-from ares.consts import GAS_BUILDINGS, UnitTreeQueryType, WORKER_TYPES, ALL_STRUCTURES
 from bot.managers.adept_manager import AdeptManager
 from bot.managers.combat_manager import CombatManager
+from bot.managers.deimos_mediator import DeimosMediator
 from bot.managers.oracle_manager import OracleManager
 from bot.managers.phoenix_manager import PhoenixManager
 from bot.managers.worker_defence_manager import WorkerDefenceManager
+from cython_extensions import cy_closest_to, cy_distance_to_squared
 
 
 class MyBot(AresBot):
@@ -37,6 +37,7 @@ class MyBot(AresBot):
             specified elsewhere
         """
         super().__init__(game_step_override)
+        self._deimos_mediator: DeimosMediator = DeimosMediator()
 
         self._army_comp: dict = self.stalker_immortal_comp
         self._enemy_rushed: bool = False
@@ -120,18 +121,19 @@ class MyBot(AresBot):
         add our own managers.
         """
         manager_mediator = ManagerMediator()
+
+        additional_managers: list[Manager] = [
+            AdeptManager(self, self.config, manager_mediator),
+            CombatManager(self, self.config, manager_mediator),
+            OracleManager(self, self.config, manager_mediator),
+            PhoenixManager(self, self.config, manager_mediator),
+            WorkerDefenceManager(self, self.config, manager_mediator),
+        ]
         self.manager_hub = Hub(
-            self,
-            self.config,
-            manager_mediator,
-            additional_managers=[
-                AdeptManager(self, self.config, manager_mediator),
-                CombatManager(self, self.config, manager_mediator),
-                OracleManager(self, self.config, manager_mediator),
-                PhoenixManager(self, self.config, manager_mediator),
-                WorkerDefenceManager(self, self.config, manager_mediator),
-            ],
+            self, self.config, manager_mediator, additional_managers=additional_managers
         )
+
+        self._deimos_mediator.add_managers(additional_managers)
 
         self.manager_hub.init_managers()
 

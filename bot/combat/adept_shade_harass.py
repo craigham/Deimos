@@ -3,8 +3,6 @@ from typing import TYPE_CHECKING, Union
 
 import numpy as np
 from ares import ManagerMediator
-from ares.behaviors.combat import CombatManeuver
-from ares.behaviors.combat.group import GroupUseAbility, PathGroupToTarget
 from ares.managers.squad_manager import UnitSquad
 from sc2.ids.ability_id import AbilityId
 from sc2.position import Point2

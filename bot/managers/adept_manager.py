@@ -4,17 +4,15 @@ import numpy as np
 from ares import ManagerMediator
 from ares.consts import (
     TOWNHALL_TYPES,
+    VICTORY_CLOSE_OR_BETTER,
+    WORKER_TYPES,
     EngagementResult,
     UnitRole,
     UnitTreeQueryType,
-    WORKER_TYPES,
-    VICTORY_CLOSE_OR_BETTER,
 )
 from ares.managers.manager import Manager
-from ares.managers.squad_manager import UnitSquad
 from cython_extensions.units_utils import cy_closest_to
 from map_analyzer import MapData
-from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
 from sc2.unit import Unit
@@ -23,6 +21,7 @@ from sc2.units import Units
 from bot.combat.adept_harass import AdeptHarass
 from bot.combat.adept_shade_harass import AdeptShadeHarass
 from bot.combat.base_unit import BaseUnit
+from bot.managers.deimos_mediator import DeimosMediator
 from cython_extensions import cy_distance_to_squared
 
 if TYPE_CHECKING:
@@ -30,6 +29,8 @@ if TYPE_CHECKING:
 
 
 class AdeptManager(Manager):
+    deimos_mediator: DeimosMediator
+
     def __init__(
         self,
         ai: "AresBot",

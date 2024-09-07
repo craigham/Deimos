@@ -19,13 +19,15 @@ from sc2.units import Units
 from bot.combat.base_unit import BaseUnit
 from bot.combat.phoenix_harass import PhoenixHarass
 from bot.consts import COMMON_UNIT_IGNORE_TYPES
-from cython_extensions import cy_center, cy_distance_to
+from bot.managers.deimos_mediator import DeimosMediator
 
 if TYPE_CHECKING:
     from ares import AresBot
 
 
 class PhoenixManager(Manager):
+    deimos_mediator: DeimosMediator
+
     SQUAD_ENGAGE_THRESHOLD: set[EngagementResult] = VICTORY_EMPHATIC_OR_BETTER
     SQUAD_DISENGAGE_THRESHOLD: set[EngagementResult] = LOSS_MARGINAL_OR_WORSE
 

@@ -3,25 +3,22 @@ from itertools import cycle
 from typing import TYPE_CHECKING
 
 import numpy as np
-from map_analyzer import MapData
-from src.ares.consts import UnitTreeQueryType
-
 from ares import ManagerMediator
 from ares.behaviors.combat import CombatManeuver
 from ares.behaviors.combat.individual import (
-    KeepUnitSafe,
-    ShootTargetInRange,
-    UseAbility,
     AttackTarget,
+    KeepUnitSafe,
+    UseAbility,
 )
+from map_analyzer import MapData
 from sc2.ids.ability_id import AbilityId
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
+from src.ares.consts import UnitTreeQueryType
 
 from bot.combat.base_unit import BaseUnit
 from cython_extensions import (
-    cy_in_attack_range,
     cy_closest_to,
     cy_distance_to_squared,
     cy_pick_enemy_target,

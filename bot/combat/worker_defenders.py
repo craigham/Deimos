@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
 
 import numpy as np
-from ares.behaviors.combat.individual import KeepUnitSafe, WorkerKiteBack
+from ares.behaviors.combat.individual import WorkerKiteBack
 from ares.cache import property_cache_once_per_frame
 from ares.consts import ALL_STRUCTURES, WORKER_TYPES, UnitTreeQueryType
 from ares.managers.manager_mediator import ManagerMediator

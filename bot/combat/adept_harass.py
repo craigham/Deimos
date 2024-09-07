@@ -1,10 +1,9 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Union
 
 import numpy as np
 from ares import ManagerMediator, UnitTreeQueryType
 from ares.behaviors.combat import CombatManeuver
-from ares.behaviors.combat.group import AMoveGroup, GroupUseAbility, StutterGroupBack
 from ares.behaviors.combat.individual import (
     KeepUnitSafe,
     PathUnitToTarget,
@@ -13,11 +12,7 @@ from ares.behaviors.combat.individual import (
     UseAbility,
 )
 from ares.consts import VICTORY_DECISIVE_OR_BETTER, EngagementResult
-from ares.dicts.unit_data import UNIT_DATA
-from ares.managers.squad_manager import UnitSquad
 from sc2.ids.ability_id import AbilityId
-from sc2.ids.buff_id import BuffId
-from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
@@ -28,7 +23,6 @@ from bot.consts import COMMON_UNIT_IGNORE_TYPES
 from cython_extensions import (
     cy_attack_ready,
     cy_closest_to,
-    cy_distance_to,
     cy_in_attack_range,
     cy_pick_enemy_target,
 )

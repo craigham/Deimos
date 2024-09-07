@@ -1,12 +1,10 @@
 """Handle Reaper Harass."""
 from itertools import cycle
-from typing import TYPE_CHECKING, Dict, Set
+from typing import TYPE_CHECKING
 
 from ares import ManagerMediator
 from ares.consts import UnitRole, UnitTreeQueryType
 from ares.managers.manager import Manager
-from cython_extensions.units_utils import cy_closest_to
-from sc2.data import Race
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
 from sc2.unit import Unit
@@ -14,6 +12,7 @@ from sc2.units import Units
 
 from bot.combat.base_unit import BaseUnit
 from bot.combat.oracle_harass import OracleHarass
+from bot.managers.deimos_mediator import DeimosMediator
 
 # from bot.combat.oracle_scout import OracleScout
 
@@ -22,6 +21,8 @@ if TYPE_CHECKING:
 
 
 class OracleManager(Manager):
+    deimos_mediator: DeimosMediator
+
     def __init__(
         self,
         ai: "AresBot",
