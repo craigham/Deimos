@@ -139,7 +139,10 @@ class MyBot(AresBot):
         await super(MyBot, self).on_step(iteration)
 
         num_workers_per_gas: int = 3
-        if self.mediator.get_enemy_worker_rushed and self.supply_used < 26:
+        gatherers: Units = self.mediator.get_units_from_role(role=UnitRole.GATHERING)
+        if (self.mediator.get_enemy_worker_rushed and len(gatherers) < 21) or len(
+            gatherers
+        ) < 12:
             num_workers_per_gas: int = 0
         self.register_behavior(Mining(workers_per_gas=num_workers_per_gas))
 

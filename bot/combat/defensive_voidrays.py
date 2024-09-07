@@ -115,11 +115,12 @@ class DefensiveVoidrays(BaseUnit):
                         target: Unit = cy_pick_enemy_target(in_attack_range)
                         maneuver.add(AttackTarget(unit=unit, target=target))
                 else:
+                    target: Unit = cy_pick_enemy_target(close_enemy)
                     maneuver.add(
                         UseAbility(
                             AbilityId.ATTACK_ATTACK,
                             unit,
-                            close_enemy.center,
+                            target,
                         )
                     )
 
