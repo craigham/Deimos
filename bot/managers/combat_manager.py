@@ -46,6 +46,12 @@ if TYPE_CHECKING:
 
 
 class CombatManager(Manager):
+    ATTACK_TARGET_IGNORE: set[UnitID] = {
+        UnitID.CREEPTUMOR,
+        UnitID.CREEPTUMORQUEEN,
+        UnitID.CREEPTUMORBURROWED,
+        UnitID.NYDUSCANAL,
+    }
     defensive_voidrays: BaseUnit
 
     def __init__(
@@ -101,17 +107,18 @@ class CombatManager(Manager):
 
         enemy_structure_pos: Optional[Point2] = None
         if enemy_structures := self.ai.enemy_structures.filter(
-            lambda s: s.type_id
-            not in {
-                UnitID.CREEPTUMOR,
-                UnitID.CREEPTUMORQUEEN,
-                UnitID.CREEPTUMORBURROWED,
-                UnitID.NYDUSCANAL,
-            }
+            lambda s: s.type_id not in self.ATTACK_TARGET_IGNORE
         ):
             enemy_structure_pos = enemy_structures.closest_to(
                 self.manager_mediator.get_enemy_nat
             ).position
+
+        if (
+            self.ai.build_order_runner.chosen_opening == "OneBaseTempests"
+            and self.ai.time < 360.0
+            and not enemy_structure_pos
+        ):
+            return self.ai.enemy_start_locations[0]
 
         own_center_mass, num_own = cy_find_units_center_mass(
             self.manager_mediator.get_units_from_role(role=UnitRole.ATTACKING),

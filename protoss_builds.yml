@@ -7,7 +7,8 @@ BuildChoices:
     test_123:
         BotName: Test
         Cycle:
-            - OneBaseTempests
+            - AdeptVoidray
+            # - OneBaseTempests
 
     Protoss:
         BotName: ProtossRace
@@ -92,8 +93,8 @@ Builds:
             - 34 gas *2
             - 34 adept *2
     OneBaseTempests:
-        ConstantWorkerProductionTill: 24
-        AutoSupplyAtSupply: 24
+        ConstantWorkerProductionTill: 22
+        AutoSupplyAtSupply: 22
         OpeningBuildOrder:
             - 13 pylon @ ramp
             - 14 forge @ ramp
