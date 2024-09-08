@@ -12,12 +12,7 @@ from ares.behaviors.combat.individual import (
     StutterUnitBack,
 )
 from ares.cache import property_cache_once_per_frame
-from ares.consts import (
-    ALL_STRUCTURES,
-    WORKER_TYPES,
-    UnitRole,
-    UnitTreeQueryType,
-)
+from ares.consts import ALL_STRUCTURES, WORKER_TYPES, UnitRole, UnitTreeQueryType
 from ares.managers.manager import Manager
 from cython_extensions.units_utils import (
     cy_closest_to,
@@ -79,26 +74,10 @@ class CombatManager(Manager):
             self.ai, self.config, self.ai.mediator
         )
 
-    @property
-    def enemy_rushed(self) -> bool:
-        # TODO: engineer this to make it available to other classes
-        #   Currently replicated in main.py
-        return (
-            self.ai.mediator.get_enemy_ling_rushed
-            or self.ai.mediator.get_enemy_marauder_rush
-            or self.ai.mediator.get_enemy_marine_rush
-            or self.ai.mediator.get_is_proxy_zealot
-            or self.ai.mediator.get_enemy_ravager_rush
-            or self.ai.mediator.get_enemy_went_marine_rush
-            or self.ai.mediator.get_enemy_four_gate
-            or self.ai.mediator.get_enemy_roach_rushed
-            or self.ai.mediator.get_enemy_worker_rushed
-        )
-
     @property_cache_once_per_frame
     def attack_target(self) -> Point2:
         """Quick attack target implementation, improve this later."""
-        if self.enemy_rushed and self.ai.time < 240.0:
+        if self.deimos_mediator.get_enemy_rushed and self.ai.time < 240.0:
             return self.ai.main_base_ramp.top_center
 
         enemy_structure_pos: Optional[Point2] = None

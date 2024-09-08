@@ -1,8 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING, Any, Callable, Optional
-
-from sc2.ids.unit_typeid import UnitTypeId as UnitID
-from sc2.position import Point2
+from typing import TYPE_CHECKING, Any, Callable
 
 from bot.consts import RequestType
 
@@ -18,7 +15,7 @@ class IDeimosMediator(metaclass=ABCMeta):
     """
 
     # each manager has a dict linking the request type to a callable action
-    phobos_requests_dict: dict[RequestType, Callable]
+    deimos_requests_dict: dict[RequestType, Callable]
 
     @abstractmethod
     def manager_request(
@@ -60,7 +57,7 @@ class DeimosMediator(IDeimosMediator):
         """
         for manager in managers:
             self.managers[str(type(manager).__name__)] = manager
-            manager.phobos_mediator = self
+            manager.deimos_mediator = self
 
     def manager_request(
         self, receiver: str, request: RequestType, reason: str = None, **kwargs
@@ -88,53 +85,14 @@ class DeimosMediator(IDeimosMediator):
             receiver, request, reason, **kwargs
         )
 
-    def add_to_queue(self, **kwargs) -> None:
-        self.manager_request("PriorityManager", RequestType.ADD_TO_QUEUE, **kwargs)
-
     @property
-    def get_are_queues_empty(self) -> bool:
-        return self.manager_request("PriorityManager", RequestType.GET_ARE_QUEUES_EMPTY)
-
-    @property
-    def get_army_comp(self) -> dict[UnitID, Any]:
+    def get_army_comp(self) -> dict:
         return self.manager_request("ArmyCompManager", RequestType.GET_ARMY_COMP)
 
     @property
-    def get_attack_target(self) -> Point2:
-        return self.manager_request("CombatManager", RequestType.GET_ATTACK_TARGET)
+    def get_enemy_proxies(self) -> bool:
+        return self.manager_request("ReconManager", RequestType.GET_ENEMY_PROXIES)
 
     @property
-    def get_is_aggressive(self) -> bool:
-        return self.manager_request("CombatManager", RequestType.GET_IS_AGGRESSIVE)
-
-    def get_is_item_in_queue(self, **kwargs) -> bool:
-        return self.manager_request(
-            "PriorityManager", RequestType.GET_IS_ITEM_IN_QUEUE, **kwargs
-        )
-
-    @property
-    def get_next_expansion_location(self) -> Optional[Point2]:
-        return self.manager_request(
-            "ExpansionManager", RequestType.GET_NEXT_EXPANSION_LOCATION
-        )
-
-    @property
-    def get_rally_point(self) -> Point2:
-        return self.manager_request("CombatManager", RequestType.GET_RALLY_POINT)
-
-    @property
-    def get_reaper_scout_finished(self) -> Point2:
-        return self.manager_request(
-            "ScoutManager", RequestType.GET_REAPER_SCOUT_FINISHED
-        )
-
-    @property
-    def get_tank_to_new_position_dict(self) -> Point2:
-        return self.manager_request(
-            "LeapfrogManager", RequestType.GET_TANK_TO_NEW_POSITION_DICT
-        )
-
-    def request_scan(self, **kwargs) -> None:
-        return self.manager_request(
-            "OrbitalManager", RequestType.REQUEST_SCAN, **kwargs
-        )
+    def get_enemy_rushed(self) -> bool:
+        return self.manager_request("ReconManager", RequestType.GET_ENEMY_RUSHED)

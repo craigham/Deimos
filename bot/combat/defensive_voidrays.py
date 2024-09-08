@@ -5,11 +5,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 from ares import ManagerMediator
 from ares.behaviors.combat import CombatManeuver
-from ares.behaviors.combat.individual import (
-    AttackTarget,
-    KeepUnitSafe,
-    UseAbility,
-)
+from ares.behaviors.combat.individual import AttackTarget, KeepUnitSafe, UseAbility
 from map_analyzer import MapData
 from sc2.ids.ability_id import AbilityId
 from sc2.position import Point2
