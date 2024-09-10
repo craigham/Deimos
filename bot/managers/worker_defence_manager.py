@@ -79,15 +79,6 @@ class WorkerDefenceManager(Manager):
             ]
         )
 
-    @property
-    def proxy_structures(self) -> list[Unit]:
-        return [
-            s
-            for s in self.ai.enemy_structures
-            if s.type_id in self._proxy_to_workers_required
-            and cy_distance_to_squared(s.position, self.ai.start_location) < 2304.0
-        ]
-
     async def update(self, iteration: int) -> None:
         enemy_near_bases: dict[
             int, set[int]
@@ -115,14 +106,14 @@ class WorkerDefenceManager(Manager):
 
         if [
             u
-            for u in self.proxy_structures
+            for u in self.deimos_mediator.get_enemy_proxies
             if u.type_id in {UnitID.BUNKER, UnitID.PHOTONCANNON} and u.is_ready
         ]:
             return 0
 
         num_probes_required: int = 0
         if not self.manager_mediator.get_is_proxy_zealot:
-            for s in self.proxy_structures:
+            for s in self.deimos_mediator.get_enemy_proxies:
                 if s.type_id in self._proxy_to_workers_required:
                     if (
                         len(self.manager_mediator.get_enemy_army_dict[UnitID.MARAUDER])
@@ -182,7 +173,7 @@ class WorkerDefenceManager(Manager):
 
         proxies: list[Unit] = [
             p
-            for p in self.proxy_structures
+            for p in self.deimos_mediator.get_enemy_proxies
             if p.type_id in self._proxy_to_workers_required.keys()
         ]
 
@@ -196,7 +187,10 @@ class WorkerDefenceManager(Manager):
         for probe in defender_probes:
             if (
                 (not enemy_near_bases and not proxies and len(near_enemy_workers) < 6)
-                or probe.shield_percentage <= 0.2
+                or (
+                    probe.shield_percentage <= 0.2
+                    and not self.manager_mediator.get_enemy_worker_rushed
+                )
                 or cy_distance_to_squared(probe.position, self.ai.start_location)
                 > 2400.0
             ):

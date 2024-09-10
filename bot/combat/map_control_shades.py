@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import numpy as np
+from cython_extensions import cy_distance_to_squared
+
 from ares import ManagerMediator
 from ares.managers.squad_manager import UnitSquad
 from sc2.ids.ability_id import AbilityId
@@ -49,6 +51,9 @@ class MapControlShades(BaseUnit):
         """
 
         for unit in units:
-            if unit.buff_duration_remain > 4:
+            if unit.buff_duration_remain > 4 or (
+                unit.order_target
+                and cy_distance_to_squared(unit.order_target, unit.position) > 225.0
+            ):
                 continue
             unit(AbilityId.CANCEL_ADEPTSHADEPHASESHIFT)

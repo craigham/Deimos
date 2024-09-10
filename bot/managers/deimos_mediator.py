@@ -1,6 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Any, Callable
 
+from sc2.unit import Unit
+
 from bot.consts import RequestType
 
 if TYPE_CHECKING:
@@ -94,7 +96,7 @@ class DeimosMediator(IDeimosMediator):
         return self.manager_request("ArmyCompManager", RequestType.GET_ARMY_COMP)
 
     @property
-    def get_enemy_proxies(self) -> bool:
+    def get_enemy_proxies(self) -> list[Unit]:
         return self.manager_request("ReconManager", RequestType.GET_ENEMY_PROXIES)
 
     @property

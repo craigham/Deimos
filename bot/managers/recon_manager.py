@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Any
 
+from ares.cache import property_cache_once_per_frame
 from ares import ManagerMediator
 from ares.managers.manager import Manager
 from sc2.unit import Unit
@@ -84,7 +85,7 @@ class ReconManager(Manager):
             or self.manager_mediator.get_enemy_worker_rushed
         )
 
-    @property
+    @property_cache_once_per_frame
     def enemy_proxies(self) -> list[Unit]:
         return [
             s

@@ -17,9 +17,6 @@ from sc2.units import Units
 from src.ares.consts import UnitTreeQueryType
 
 from bot.combat.base_unit import BaseUnit
-from cython_extensions import (
-    cy_in_attack_range,
-)
 
 if TYPE_CHECKING:
     from ares import AresBot
@@ -90,15 +87,16 @@ class MapControlAdepts(BaseUnit):
             )
             maneuver.add(ShootTargetInRange(unit=unit, targets=close_enemy))
             maneuver.add(KeepUnitSafe(unit, grid))
-            maneuver.add(AMove(unit, self.ai.enemy_start_locations[0]))
+            maneuver.add(AMove(unit, self.mediator.get_enemy_nat))
 
             self.ai.register_behavior(maneuver)
 
     def _create_shade_target_generator(self):
         spots = [
             self.ai.enemy_start_locations[0],
-            self.mediator.get_enemy_third,
-            self.mediator.get_enemy_fourth,
+            self.mediator.get_enemy_expansions[1][0],
+            self.mediator.get_enemy_expansions[2][0],
+            self.mediator.get_enemy_expansions[3][0],
         ]
 
         self.shade_target_generator = cycle(spots)

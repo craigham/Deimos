@@ -78,6 +78,8 @@ class WorkerDefenders(BaseUnit):
             And target for the mine drop.
 
         """
+        if not units:
+            return
 
         ground_near_workers: dict[int, Units] = self.mediator.get_units_in_range(
             start_points=units,
@@ -105,8 +107,6 @@ class WorkerDefenders(BaseUnit):
 
             if enemy_workers_target:
                 worker.attack(enemy_workers_target)
-            # elif worker.shield_percentage < 1.0:
-            #     self.ai.register_behavior(KeepUnitSafe(worker, grid))
             elif proxies := self.proxy_structures:
                 worker.attack(cy_closest_to(worker.position, proxies))
             elif threats := [
