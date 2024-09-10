@@ -12,13 +12,14 @@ from ares.consts import (
 )
 from ares.managers.manager import Manager
 from ares.managers.squad_manager import UnitSquad
+from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
 
 from bot.combat.base_unit import BaseUnit
 from bot.combat.phoenix_harass import PhoenixHarass
-from bot.consts import COMMON_UNIT_IGNORE_TYPES
+from bot.consts import COMMON_UNIT_IGNORE_TYPES, STEAL_FROM_ROLES
 from bot.managers.deimos_mediator import DeimosMediator
 
 if TYPE_CHECKING:
@@ -83,7 +84,16 @@ class PhoenixManager(Manager):
         self.phoenix_harass_target = best_target
 
     async def update(self, iteration: int) -> None:
+        self._assign_phoenix_roles()
         self._control_phoenixes()
+
+    def _assign_phoenix_roles(self) -> None:
+        if defending_phoenixes := self.manager_mediator.get_units_from_roles(
+            roles=STEAL_FROM_ROLES, unit_type=UnitID.PHOENIX
+        ):
+            self.manager_mediator.batch_assign_role(
+                tags=defending_phoenixes.tags, role=UnitRole.HARASSING_PHOENIX
+            )
 
     def _control_phoenixes(self):
         phoenix_squads: list[UnitSquad] = self.manager_mediator.get_squads(

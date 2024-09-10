@@ -1,11 +1,10 @@
 from typing import TYPE_CHECKING
 
+from ares import ManagerMediator
+from ares.managers.manager import Manager
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.buff_id import BuffId
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
-
-from ares import ManagerMediator
-from ares.managers.manager import Manager
 
 from bot.managers.deimos_mediator import DeimosMediator
 

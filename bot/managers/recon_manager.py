@@ -1,13 +1,12 @@
 from typing import TYPE_CHECKING, Any
 
-from cython_extensions import cy_distance_to_squared
-from sc2.unit import Unit
-
 from ares import ManagerMediator
 from ares.managers.manager import Manager
+from sc2.unit import Unit
 
 from bot.consts import RequestType
 from bot.managers.deimos_mediator import DeimosMediator
+from cython_extensions import cy_distance_to_squared
 
 if TYPE_CHECKING:
     from ares import AresBot

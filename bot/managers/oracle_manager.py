@@ -12,6 +12,7 @@ from sc2.units import Units
 
 from bot.combat.base_unit import BaseUnit
 from bot.combat.oracle_harass import OracleHarass
+from bot.consts import STEAL_FROM_ROLES
 from bot.managers.deimos_mediator import DeimosMediator
 
 # from bot.combat.oracle_scout import OracleScout
@@ -60,8 +61,11 @@ class OracleManager(Manager):
 
     async def update(self, iteration: int) -> None:
         # oracles get assigned harass by default, low priority task
+        harass_oracles: Units = self.manager_mediator.get_units_from_role(
+            role=UnitRole.HARASSING_ORACLE
+        )
         if iteration % 8 == 0:
-            self._assign_oracle_roles()
+            self._assign_oracle_roles(harass_oracles)
 
         if self.oracle_harass_active:
             for unit in self.ai.enemy_units:
@@ -78,7 +82,7 @@ class OracleManager(Manager):
         else:
             self._update_oracle_scout_target()
 
-        self._control_oracles()
+        self._control_oracles(harass_oracles)
 
     def on_unit_took_damage(self, unit: Unit) -> None:
         # check if there is only one oracle nearby, then we can update that oracle's weapon cooldown
@@ -108,23 +112,25 @@ class OracleManager(Manager):
         #
         # return aa_dps < 25.0
 
-    def _assign_oracle_roles(self):
+    def _assign_oracle_roles(self, harass_oracles: Units):
         # decide if harassers should switch to scouting
-        if not self.oracle_harass_active:
-            if harass_oracles := self.manager_mediator.get_units_from_role(
-                role=UnitRole.HARASSING_ORACLE
+        if not self.oracle_harass_active and harass_oracles:
+            self.manager_mediator.batch_assign_role(
+                tags=harass_oracles.tags, role=UnitRole.SCOUTING
+            )
+        # oracles get defending role by default, switch to harass
+        else:
+            if defending_oracles := self.manager_mediator.get_units_from_roles(
+                roles=STEAL_FROM_ROLES, unit_type=UnitID.ORACLE
             ):
                 self.manager_mediator.batch_assign_role(
-                    tags=harass_oracles.tags, role=UnitRole.SCOUTING
+                    tags=defending_oracles.tags, role=UnitRole.HARASSING_ORACLE
                 )
 
-    def _control_oracles(self):
-        if harass_oracles := self.manager_mediator.get_units_from_role(
-            role=UnitRole.HARASSING_ORACLE
-        ):
-            self._oracle_harass.execute(
-                harass_oracles, oracle_to_weapon_ready=self.oracle_to_weapon_ready
-            )
+    def _control_oracles(self, harass_oracles: Units):
+        self._oracle_harass.execute(
+            harass_oracles, oracle_to_weapon_ready=self.oracle_to_weapon_ready
+        )
 
         # if scouting_oracles := self.manager_mediator.get_units_from_role(
         #     role=UnitRole.SCOUTING, unit_type=UnitID.ORACLE

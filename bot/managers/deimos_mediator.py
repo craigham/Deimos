@@ -86,6 +86,10 @@ class DeimosMediator(IDeimosMediator):
         )
 
     @property
+    def get_adept_to_phase(self) -> dict:
+        return self.manager_request("AdeptManager", RequestType.GET_ADEPT_TO_PHASE)
+
+    @property
     def get_army_comp(self) -> dict:
         return self.manager_request("ArmyCompManager", RequestType.GET_ARMY_COMP)
 

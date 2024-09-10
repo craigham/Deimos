@@ -12,7 +12,13 @@ from ares.behaviors.combat.individual import (
     StutterUnitBack,
 )
 from ares.cache import property_cache_once_per_frame
-from ares.consts import ALL_STRUCTURES, WORKER_TYPES, UnitRole, UnitTreeQueryType
+from ares.consts import (
+    ALL_STRUCTURES,
+    WORKER_TYPES,
+    EngagementResult,
+    UnitRole,
+    UnitTreeQueryType,
+)
 from ares.managers.manager import Manager
 from cython_extensions.units_utils import (
     cy_closest_to,
@@ -25,8 +31,7 @@ from sc2.unit import Unit
 from sc2.units import Units
 
 from bot.combat.base_unit import BaseUnit
-from bot.combat.defensive_voidrays import DefensiveVoidrays
-from bot.consts import COMMON_UNIT_IGNORE_TYPES
+from bot.consts import COMMON_UNIT_IGNORE_TYPES, STEAL_FROM_ROLES
 from bot.managers.deimos_mediator import DeimosMediator
 from cython_extensions import cy_distance_to_squared
 
@@ -68,11 +73,7 @@ class CombatManager(Manager):
         super().__init__(ai, config, mediator)
         self.expansions_generator = None
         self.current_base_target: Point2 = self.ai.enemy_start_locations[0]
-
-    def initialise(self) -> None:
-        self.defensive_voidrays: BaseUnit = DefensiveVoidrays(
-            self.ai, self.config, self.ai.mediator
-        )
+        self.aggressive: bool = False
 
     @property_cache_once_per_frame
     def attack_target(self) -> Point2:
@@ -138,9 +139,46 @@ class CombatManager(Manager):
 
             return self.current_base_target
 
+    @property_cache_once_per_frame
+    def main_fight_result(self) -> EngagementResult:
+        attackers: Units = self.manager_mediator.get_units_from_roles(
+            roles=STEAL_FROM_ROLES
+        )
+        army_mass: tuple[float, float] = cy_find_units_center_mass(attackers, 12.0)[0]
+        army_near_mass: Units = attackers.filter(
+            lambda u: cy_distance_to_squared(u.position, army_mass) < 150.0
+        )
+
+        return self.manager_mediator.can_win_fight(
+            own_units=army_near_mass,
+            enemy_units=self.manager_mediator.get_cached_enemy_army
+            + self.ai.enemy_structures(UnitID.PLANETARYFORTRESS),
+        )
+
     async def update(self, iteration: int) -> None:
+        self._check_aggressive_status()
+        self._manage_combat_roles()
+
         self._handle_attackers()
-        self._handle_defenders()
+        # self._handle_defenders()
+
+    def _manage_combat_roles(self) -> None:
+        if self.aggressive:
+            self.manager_mediator.switch_roles(
+                from_role=UnitRole.DEFENDING, to_role=UnitRole.ATTACKING
+            )
+        else:
+            self.manager_mediator.switch_roles(
+                from_role=UnitRole.ATTACKING, to_role=UnitRole.DEFENDING
+            )
+
+    def _check_aggressive_status(self) -> None:
+        self.aggressive = True
+        # TODO: Example future logic
+        # if self.aggressive:
+        #     self.aggressive = self.main_fight_result not in LOSS_EMPHATIC_OR_WORSE
+        # else:
+        #     self.aggressive = self.main_fight_result in VICTORY_DECISIVE_OR_BETTER
 
     def _handle_attackers(self):
         air_grid: np.ndarray = self.manager_mediator.get_air_grid
@@ -213,13 +251,3 @@ class CombatManager(Manager):
 
             # DON'T FORGET TO REGISTER OUR COMBAT MANEUVER!!
             self.ai.register_behavior(attacking_maneuver)
-
-    def _handle_defenders(self):
-        """
-        We only have defensive voids currently
-        """
-        grid: np.ndarray = self.manager_mediator.get_air_grid
-        voids: Units = self.manager_mediator.get_units_from_role(
-            role=UnitRole.DEFENDING, unit_type=UnitID.VOIDRAY
-        )
-        self.defensive_voidrays.execute(voids, grid=grid)

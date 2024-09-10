@@ -1,23 +1,22 @@
 from typing import TYPE_CHECKING, Any
 
-from cython_extensions import cy_distance_to_squared
+from ares import ManagerMediator, UnitRole
+from ares.behaviors.macro import (
+    AutoSupply,
+    MacroPlan,
+    Mining,
+    ProductionController,
+    SpawnController,
+)
+from ares.behaviors.macro.build_workers import BuildWorkers
+from ares.behaviors.macro.gas_building_controller import GasBuildingController
+from ares.managers.manager import Manager
 from sc2.unit import Unit
 from sc2.units import Units
 
-from ares import ManagerMediator, UnitRole
-from ares.behaviors.macro import (
-    MacroPlan,
-    AutoSupply,
-    ProductionController,
-    SpawnController,
-    Mining,
-)
-from ares.behaviors.macro.gas_building_controller import GasBuildingController
-from ares.behaviors.macro.build_workers import BuildWorkers
-from ares.managers.manager import Manager
-
 from bot.consts import RequestType
 from bot.managers.deimos_mediator import DeimosMediator
+from cython_extensions import cy_distance_to_squared
 
 if TYPE_CHECKING:
     from ares import AresBot

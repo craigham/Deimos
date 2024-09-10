@@ -64,7 +64,7 @@ Builds:
             - 22 gas
     AdeptVoidray:
         ConstantWorkerProductionTill: 44
-        AutoSupplyAtSupply: 24
+        AutoSupplyAtSupply: 27
         OpeningBuildOrder:
             - 14 pylon @ ramp
             - 15 gate @ ramp
@@ -73,9 +73,9 @@ Builds:
             - 15 worker_scout:
                 [ enemy_spawn ]
             - 20 core @ ramp
+            - 20 pylon
             - 20 nexus
-            - 20 gas
-            - 21 pylon
+            - 21 gas
             - 21 adept
             - 21 chrono @ gateway
             - 24 stargate

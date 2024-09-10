@@ -6,7 +6,6 @@ from ares import ManagerMediator, UnitTreeQueryType
 from ares.behaviors.combat import CombatManeuver
 from ares.behaviors.combat.individual import (
     KeepUnitSafe,
-    PathUnitToTarget,
     ShootTargetInRange,
     StutterUnitBack,
     UseAbility,

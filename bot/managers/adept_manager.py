@@ -1,6 +1,8 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Any
 
 import numpy as np
+from sc2.data import Race
+
 from ares import ManagerMediator
 from ares.consts import (
     TOWNHALL_TYPES,
@@ -21,6 +23,9 @@ from sc2.units import Units
 from bot.combat.adept_harass import AdeptHarass
 from bot.combat.adept_shade_harass import AdeptShadeHarass
 from bot.combat.base_unit import BaseUnit
+from bot.combat.map_control_adepts import MapControlAdepts
+from bot.combat.map_control_shades import MapControlShades
+from bot.consts import RequestType
 from bot.managers.deimos_mediator import DeimosMediator
 from cython_extensions import cy_distance_to_squared
 
@@ -30,6 +35,9 @@ if TYPE_CHECKING:
 
 class AdeptManager(Manager):
     deimos_mediator: DeimosMediator
+
+    map_control_adepts: BaseUnit
+    map_control_shades: BaseUnit
 
     def __init__(
         self,
@@ -53,34 +61,122 @@ class AdeptManager(Manager):
         """
         super().__init__(ai, config, mediator)
 
+        self.deimos_requests_dict = {
+            RequestType.GET_ADEPT_TO_PHASE: lambda kwargs: self._adept_to_phase,
+        }
+
         self._adept_harass: BaseUnit = AdeptHarass(ai, config, mediator)
         self._adept_shade_harass: BaseUnit = AdeptShadeHarass(ai, config, mediator)
+
         # adept tag to phase tag
         self._adept_to_phase: dict[int, int] = dict()
         # adept tag to target
         self._adept_targets: dict[int, Point2] = dict()
         # phase tag to target
         self._shade_targets: dict[int, Point2] = dict()
+        self._assigned_shades: set[int] = set()
+        self._assigned_map_control_adept: bool = False
+
+    def initialise(self) -> None:
+        self.map_control_adepts: BaseUnit = MapControlAdepts(
+            self.ai, self.config, self.ai.mediator
+        )
+        self.map_control_shades: BaseUnit = MapControlShades(
+            self.ai, self.config, self.ai.mediator
+        )
+
+    def manager_request(
+        self,
+        receiver: str,
+        request: RequestType,
+        reason: str = None,
+        **kwargs,
+    ) -> Any:
+        """Fetch information from this Manager so another Manager can use it.
+
+        Parameters
+        ----------
+        receiver :
+            This Manager.
+        request :
+            What kind of request is being made
+        reason :
+            Why the reason is being made
+        kwargs :
+            Additional keyword args if needed for the specific request, as determined
+            by the function signature (if appropriate)
+
+        Returns
+        -------
+        Optional[Union[Dict, DefaultDict, Coroutine[Any, Any, bool]]] :
+            Everything that could possibly be returned from the Manager fits in there
+
+        """
+        return self.deimos_requests_dict[request](kwargs)
 
     async def update(self, iteration: int) -> None:
-        adepts: Units = self.manager_mediator.get_units_from_role(
-            role=UnitRole.CONTROL_GROUP_ONE, unit_type=UnitID.ADEPT
-        )
-        if len(adepts) == 0:
+        all_adepts: Units = self.manager_mediator.get_own_army_dict[UnitID.ADEPT]
+        if not all_adepts:
             return
 
+        all_shades: Units = self.manager_mediator.get_own_army_dict[
+            UnitID.ADEPTPHASESHIFT
+        ]
+        for shade in all_shades:
+            role: UnitRole = UnitRole.CONTROL_GROUP_TWO
+            if (
+                not self._assigned_map_control_adept
+                and not self.deimos_mediator.get_enemy_rushed
+            ):
+                role = UnitRole.MAP_CONTROL
+                self._assigned_map_control_adept = True
+
+            self.manager_mediator.assign_role(tag=shade.tag, role=role)
+
+        # adepts are assigned defending by default
+        defending_adepts: Units = self.manager_mediator.get_units_from_role(
+            role=UnitRole.DEFENDING, unit_type=UnitID.ADEPT
+        )
+        self._manage_adept_roles(defending_adepts)
+
+        grid: np.ndarray = self.manager_mediator.get_ground_grid
+
+        self._link_adept_to_shade(all_adepts, all_shades)
+        cancel_shades_dict: dict = self._check_if_should_cancel_shades()
+        if self.ai.enemy_race == Race.Zerg:
+            self._manage_map_control_adepts()
+        self._manage_adept_harrass(cancel_shades_dict, grid)
+
+    def _manage_adept_roles(self, defending_adepts: Units) -> None:
+        # On this opening leave adepts on defence
+        # if (
+        #     self.ai.build_order_runner.chosen_opening == "AdeptVoidray"
+        #     and self.ai.time < 280.0
+        # ):
+        #     for unit in defending_adepts:
+        #
+        #         self.manager_mediator.assign_role(tag=unit.tag, role=UnitRole.ATTACKING)
+
+        for unit in defending_adepts:
+            if self.manager_mediator.get_enemy_ling_rushed:
+                role = UnitRole.DEFENDING
+            else:
+                role = UnitRole.HARASSING_ADEPT
+
+            self.manager_mediator.assign_role(tag=unit.tag, role=role)
+
+    def _manage_adept_harrass(self, cancel_shades_dict: dict, grid: np.ndarray) -> None:
+        harrassing_adepts: Units = self.manager_mediator.get_units_from_role(
+            role=UnitRole.HARASSING_ADEPT
+        )
         shades: Units = self.manager_mediator.get_units_from_role(
             role=UnitRole.CONTROL_GROUP_TWO, unit_type=UnitID.ADEPTPHASESHIFT
         )
 
-        grid: np.ndarray = self.manager_mediator.get_ground_grid
-
-        self._link_adept_to_shade(adepts, shades)
-        cancel_shades_dict: dict = self._check_if_should_cancel_shades()
-        self._calculate_adepts_and_phases_target(adepts, grid)
+        self._calculate_adepts_and_phases_target(harrassing_adepts, grid)
 
         self._adept_harass.execute(
-            adepts,
+            harrassing_adepts,
             grid=grid,
             target_dict=self._adept_targets,
         )
@@ -91,10 +187,49 @@ class AdeptManager(Manager):
             target_dict=self._shade_targets,
         )
 
+    def _manage_map_control_adepts(self) -> None:
+        adepts: Units = self.manager_mediator.get_units_from_role(
+            role=UnitRole.HARASSING_ADEPT
+        )
+
+        map_control_adepts: Units = self.manager_mediator.get_units_from_role(
+            role=UnitRole.MAP_CONTROL, unit_type=UnitID.ADEPT
+        )
+
+        if not map_control_adepts and adepts:
+            adept: Unit = adepts[0]
+            self.manager_mediator.assign_role(tag=adept.tag, role=UnitRole.MAP_CONTROL)
+
+        grid: np.ndarray = self.manager_mediator.get_ground_grid
+        adept_to_shade: dict[int, int] = self.deimos_mediator.get_adept_to_phase
+        for unit in map_control_adepts:
+            if unit.tag in adept_to_shade:
+                self.manager_mediator.assign_role(
+                    tag=adept_to_shade[unit.tag], role=UnitRole.MAP_CONTROL
+                )
+        self.map_control_adepts.execute(map_control_adepts, grid=grid)
+
+        for adept in map_control_adepts:
+            if shade := self.ai.unit_tag_dict.get(
+                self._adept_to_phase.get(adept.tag, 0)
+            ):
+                self.manager_mediator.assign_role(
+                    tag=shade.tag, role=UnitRole.MAP_CONTROL
+                )
+
+        map_control_shades: Units = self.manager_mediator.get_units_from_role(
+            role=UnitRole.MAP_CONTROL, unit_type=UnitID.ADEPTPHASESHIFT
+        )
+        self.map_control_shades.execute(map_control_shades)
+
     def _link_adept_to_shade(self, adepts: Units, shades: Units) -> None:
         for shade in shades:
+            tag: int = shade.tag
+            if tag in self._assigned_shades:
+                continue
             adept: Unit = cy_closest_to(shade.position, adepts)
-            self._adept_to_phase[adept.tag] = shade.tag
+            self._adept_to_phase[adept.tag] = tag
+            self._assigned_shades.add(tag)
 
     def _calculate_adepts_and_phases_target(
         self, adepts: Units, grid: np.ndarray

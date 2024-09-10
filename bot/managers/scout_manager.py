@@ -40,7 +40,7 @@ class ScoutManager(Manager):
         self._probe_proxy_denier()
 
     def _probe_proxy_denier(self):
-        """ Turn scouting probe, into a proxy denier
+        """Turn scouting probe, into a proxy denier
 
         Returns
         -------

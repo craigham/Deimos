@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 from ares import ManagerMediator
 from ares.behaviors.combat import CombatManeuver
-from ares.behaviors.combat.individual import AttackTarget, KeepUnitSafe, UseAbility
+from ares.behaviors.combat.individual import AttackTarget, UseAbility
 from map_analyzer import MapData
 from sc2.ids.ability_id import AbilityId
 from sc2.position import Point2
@@ -25,8 +25,8 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class DefensiveVoidrays(BaseUnit):
-    """Execute behavior for defensive voidrays.
+class MapControlVoidrays(BaseUnit):
+    """Execute behavior for map control voidrays.
 
     Parameters
     ----------
@@ -86,10 +86,14 @@ class DefensiveVoidrays(BaseUnit):
 
             maneuver: CombatManeuver = CombatManeuver()
 
-            # keep safe from dangerous effects (storms, biles etc)
-            maneuver.add(KeepUnitSafe(unit, avoidance_grid))
             if close_enemy:
-                if in_attack_range := [
+                # dangerous effects etc, aggressively move to enemy
+                if not self.mediator.is_position_safe(
+                    grid=avoidance_grid, position=unit.position
+                ):
+                    target: Unit = cy_pick_enemy_target(close_enemy)
+                    maneuver.add(UseAbility(AbilityId.MOVE_MOVE, unit, target))
+                elif in_attack_range := [
                     u
                     for u in close_enemy
                     if cy_distance_to_squared(unit.position, u.position)

@@ -1,7 +1,6 @@
 from typing import Optional
 
 from ares import AresBot, Hub, ManagerMediator, UnitRole
-
 from ares.managers.manager import Manager
 from loguru import logger
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
@@ -13,6 +12,7 @@ from bot.managers.army_comp_manager import ArmyCompManager
 from bot.managers.combat_manager import CombatManager
 from bot.managers.deimos_mediator import DeimosMediator
 from bot.managers.macro_manager import MacroManager
+from bot.managers.map_control_manager import MapControlManager
 from bot.managers.nexus_manager import NexusManager
 from bot.managers.oracle_manager import OracleManager
 from bot.managers.phoenix_manager import PhoenixManager
@@ -42,6 +42,7 @@ class MyBot(AresBot):
         manager_mediator = ManagerMediator()
 
         additional_managers: list[Manager] = [
+            MapControlManager(self, self.config, manager_mediator),
             AdeptManager(self, self.config, manager_mediator),
             ArmyCompManager(self, self.config, manager_mediator),
             CombatManager(self, self.config, manager_mediator),
@@ -87,33 +88,13 @@ class MyBot(AresBot):
     async def on_unit_created(self, unit: Unit) -> None:
         await super(MyBot, self).on_unit_created(unit)
 
-        type_id: UnitID = unit.type_id
-        # don't assign worker a role, ares does this already
-        if type_id == UnitID.PROBE:
+        # don't assign worker a role, ares does this already (GATHERING)
+        if unit.type_id == UnitID.PROBE:
             return
 
-        role: UnitRole
-        match type_id:
-            case UnitID.ADEPT:
-                if self.mediator.get_enemy_ling_rushed:
-                    role = UnitRole.ATTACKING
-                else:
-                    role = UnitRole.CONTROL_GROUP_ONE
-            case UnitID.ADEPTPHASESHIFT:
-                role = UnitRole.CONTROL_GROUP_TWO
-            case UnitID.ORACLE:
-                role = UnitRole.HARASSING_ORACLE
-            case UnitID.PHOENIX:
-                role = UnitRole.HARASSING_PHOENIX
-            case UnitID.VOIDRAY:
-                if self.supply_used < 66:
-                    role = UnitRole.DEFENDING
-                else:
-                    role = UnitRole.ATTACKING
-            case _:
-                role = UnitRole.ATTACKING
-
-        self.mediator.assign_role(tag=unit.tag, role=role)
+        # assign everything else to defend by default
+        # other managers can reassign as needed
+        self.mediator.assign_role(tag=unit.tag, role=UnitRole.DEFENDING)
 
     """
     Can use `python-sc2` hooks as usual, but make a call the inherited method in the superclass
