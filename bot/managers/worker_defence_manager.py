@@ -93,7 +93,7 @@ class WorkerDefenceManager(Manager):
             int, set[int]
         ] = self.manager_mediator.get_ground_enemy_near_bases
         defender_probes: Units = self.manager_mediator.get_units_from_role(
-            role=UnitRole.DEFENDING, unit_type=UnitID.PROBE
+            role=UnitRole.BASE_DEFENDER, unit_type=UnitID.PROBE
         )
         num_enemy: int = 0
         if self.enabled:
@@ -166,7 +166,7 @@ class WorkerDefenceManager(Manager):
                     min_shield_perc=1.0,
                 ):
                     self.manager_mediator.assign_role(
-                        tag=probe.tag, role=UnitRole.DEFENDING
+                        tag=probe.tag, role=UnitRole.BASE_DEFENDER
                     )
 
         return num_enemy
