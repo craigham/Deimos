@@ -193,6 +193,7 @@ class WorkerDefenceManager(Manager):
                 )
                 or cy_distance_to_squared(probe.position, self.ai.start_location)
                 > 2400.0
+                or probe.shield_health_percentage < 0.1
             ):
                 self.manager_mediator.assign_role(
                     tag=probe.tag, role=UnitRole.GATHERING

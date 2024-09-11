@@ -53,7 +53,7 @@ class MapControlShades(BaseUnit):
         for unit in units:
             if unit.buff_duration_remain > 4 or (
                 unit.order_target
-                and cy_distance_to_squared(unit.order_target, unit.position) > 225.0
+                and cy_distance_to_squared(unit.order_target, unit.position) > 630.0
             ):
                 continue
             unit(AbilityId.CANCEL_ADEPTSHADEPHASESHIFT)

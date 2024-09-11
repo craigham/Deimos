@@ -19,6 +19,7 @@ from cython_extensions import (
     cy_distance_to_squared,
     cy_in_attack_range,
     cy_pick_enemy_target,
+    cy_sorted_by_distance_to,
 )
 
 if TYPE_CHECKING:
@@ -44,6 +45,7 @@ class WorkerDefenders(BaseUnit):
     ai: "AresBot"
     config: dict
     mediator: ManagerMediator
+    set_up_worker_defence: bool = False
 
     @property_cache_once_per_frame
     def proxy_structures(self) -> list[Unit]:
@@ -88,6 +90,11 @@ class WorkerDefenders(BaseUnit):
             return_as_dict=True,
         )
         grid: np.ndarray = self.mediator.get_ground_grid
+
+        # stack workers up before fight commences
+        if self.mediator.get_enemy_worker_rushed and not self.set_up_worker_defence:
+            self._pre_worker_rush(units)
+            return
 
         for worker in units:
             if worker.is_carrying_resource and self.ai.townhalls:
@@ -136,3 +143,26 @@ class WorkerDefenders(BaseUnit):
 
             elif mfs := self.ai.mineral_field:
                 worker.gather(cy_closest_to(worker.position, mfs))
+
+    def _pre_worker_rush(self, units: Units) -> None:
+        mfs: list[Unit] = [
+            mf
+            for mf in self.ai.mineral_field
+            if cy_distance_to_squared(mf.position, self.ai.start_location) < 150.0
+        ]
+
+        far_mineral_field: Unit = cy_sorted_by_distance_to(mfs, self.ai.start_location)[
+            -1
+        ]
+
+        for unit in units:
+            unit.gather(far_mineral_field)
+
+        units_close_to_mf: list[Unit] = [
+            u
+            for u in units
+            if cy_distance_to_squared(u.position, far_mineral_field.position) < 6.5
+        ]
+
+        if len(units_close_to_mf) > len(units) * 0.8:
+            self.set_up_worker_defence = True
