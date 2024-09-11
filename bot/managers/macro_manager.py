@@ -91,7 +91,9 @@ class MacroManager(Manager):
             role=UnitRole.GATHERING
         )
         if (
-            self.manager_mediator.get_enemy_worker_rushed and len(gatherers) < 21
+            self.manager_mediator.get_enemy_worker_rushed
+            and len(gatherers) < 21
+            and self.ai.time < 210.0
         ) or len(gatherers) < 12:
             num_workers_per_gas: int = 0
         self.ai.register_behavior(Mining(workers_per_gas=num_workers_per_gas))

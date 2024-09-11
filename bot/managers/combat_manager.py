@@ -78,7 +78,11 @@ class CombatManager(Manager):
     @property_cache_once_per_frame
     def attack_target(self) -> Point2:
         """Quick attack target implementation, improve this later."""
-        if self.deimos_mediator.get_enemy_rushed and self.ai.time < 240.0:
+        if (
+            self.deimos_mediator.get_enemy_rushed
+            and self.ai.time < 240.0
+            and not self.manager_mediator.get_enemy_worker_rushed
+        ):
             return self.ai.main_base_ramp.top_center
 
         enemy_structure_pos: Optional[Point2] = None
@@ -195,6 +199,9 @@ class CombatManager(Manager):
             type_id: UnitID = s.type_id
             if type_id == UnitID.OBSERVER:
                 s.move(Point2(cy_find_units_center_mass(army, 8.0)[0]))
+                continue
+            if type_id == UnitID.ZEALOT:
+                s.attack(self.attack_target)
                 continue
 
             attacking_maneuver: CombatManeuver = CombatManeuver()
