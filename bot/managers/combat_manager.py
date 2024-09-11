@@ -85,6 +85,13 @@ class CombatManager(Manager):
         ):
             return self.ai.main_base_ramp.top_center
 
+        if (
+            self.ai.build_order_runner.chosen_opening == "OneBaseTempests"
+            and self.ai.time < 480.0
+            and (voids := self.ai.enemy_units(UnitID.VOIDRAY))
+        ):
+            return cy_closest_to(self.ai.start_location, voids).position
+
         enemy_structure_pos: Optional[Point2] = None
         if enemy_structures := self.ai.enemy_structures.filter(
             lambda s: s.type_id not in self.ATTACK_TARGET_IGNORE
@@ -222,7 +229,13 @@ class CombatManager(Manager):
                 if (
                     s.is_flying
                     and s.can_attack_ground
-                    and (danger_to_air := [u for u in all_close if u.can_attack_air])
+                    and (
+                        danger_to_air := [
+                            u
+                            for u in all_close
+                            if u.can_attack_air or u.type_id == UnitID.VOIDRAY
+                        ]
+                    )
                 ):
                     attacking_maneuver.add(
                         ShootTargetInRange(unit=s, targets=danger_to_air)
