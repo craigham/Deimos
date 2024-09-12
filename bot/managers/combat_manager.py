@@ -213,9 +213,6 @@ class CombatManager(Manager):
 
             attacking_maneuver: CombatManeuver = CombatManeuver()
 
-            if type_id == UnitID.TEMPEST and s.shield_percentage < 0.3:
-                attacking_maneuver.add(KeepUnitSafe(unit=s, grid=grid))
-
             # we already calculated close enemies, use unit tag to retrieve them
             all_close: Units = near_enemy[s.tag].filter(
                 lambda u: (not u.is_cloaked or u.is_cloaked and u.is_revealed)
@@ -252,8 +249,11 @@ class CombatManager(Manager):
                         ShootTargetInRange(unit=s, targets=in_attack_range)
                     )
 
+                if type_id == UnitID.TEMPEST and s.shield_health_percentage < 0.2:
+                    attacking_maneuver.add(KeepUnitSafe(unit=s, grid=grid))
+
                 # low shield, keep protoss units safe
-                if s.shield_percentage < 0.3:
+                elif s.shield_percentage < 0.3:
                     attacking_maneuver.add(KeepUnitSafe(unit=s, grid=grid))
 
                 else:
