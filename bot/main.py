@@ -69,6 +69,8 @@ class MyBot(AresBot):
             not self.build_order_runner.build_completed
             and self._deimos_mediator.get_enemy_rushed
             and self.build_order_runner.chosen_opening != "OneBaseTempests"
+            and not self.mediator.get_enemy_ravager_rush
+            and not self.mediator.get_enemy_roach_rushed
         ):
             if self.mediator.get_enemy_roach_rushed:
                 for th in self.townhalls.not_ready:
