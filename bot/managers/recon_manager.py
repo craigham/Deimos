@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Any
 
-from ares.cache import property_cache_once_per_frame
 from ares import ManagerMediator
+from ares.cache import property_cache_once_per_frame
 from ares.managers.manager import Manager
 from sc2.unit import Unit
 

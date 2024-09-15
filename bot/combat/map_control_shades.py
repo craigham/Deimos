@@ -2,14 +2,13 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cython_extensions import cy_distance_to_squared
-
 from ares import ManagerMediator
 from ares.managers.squad_manager import UnitSquad
 from sc2.ids.ability_id import AbilityId
 from sc2.units import Units
 
 from bot.combat.base_unit import BaseUnit
+from cython_extensions import cy_distance_to_squared
 
 if TYPE_CHECKING:
     from ares import AresBot

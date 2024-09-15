@@ -1,8 +1,6 @@
-from typing import TYPE_CHECKING, Optional, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 import numpy as np
-from sc2.data import Race
-
 from ares import ManagerMediator
 from ares.consts import (
     TOWNHALL_TYPES,
@@ -15,6 +13,7 @@ from ares.consts import (
 from ares.managers.manager import Manager
 from cython_extensions.units_utils import cy_closest_to
 from map_analyzer import MapData
+from sc2.data import Race
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
 from sc2.unit import Unit

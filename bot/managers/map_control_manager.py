@@ -1,10 +1,9 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
-from sc2.data import Race
-
 from ares import ManagerMediator
 from ares.managers.manager import Manager
+from sc2.data import Race
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.units import Units
 

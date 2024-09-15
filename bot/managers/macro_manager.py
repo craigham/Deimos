@@ -1,22 +1,20 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from ares import ManagerMediator, UnitRole
 from ares.behaviors.macro import (
     AutoSupply,
+    BuildWorkers,
+    ExpansionController,
+    GasBuildingController,
     MacroPlan,
     Mining,
     ProductionController,
     SpawnController,
 )
-from ares.behaviors.macro.build_workers import BuildWorkers
-from ares.behaviors.macro.gas_building_controller import GasBuildingController
 from ares.managers.manager import Manager
-from sc2.unit import Unit
 from sc2.units import Units
 
-from bot.consts import RequestType
 from bot.managers.deimos_mediator import DeimosMediator
-from cython_extensions import cy_distance_to_squared
 
 if TYPE_CHECKING:
     from ares import AresBot
@@ -45,12 +43,19 @@ class MacroManager(Manager):
         super().__init__(ai, config, mediator)
 
     @property
+    def can_expand(self) -> bool:
+        if self.deimos_mediator.get_enemy_rushed and self.ai.supply_army < 22:
+            return False
+
+        return self.ai.minerals > 500
+
+    @property
     def gas_buildings_required(self) -> int:
         supply_workers: float = self.ai.supply_workers
         if supply_workers < 20.0:
             return 0
 
-        gas_required: int = 3 if supply_workers < 48 else 6
+        gas_required: int = 3 if supply_workers < 40 else 100
 
         return gas_required
 
@@ -62,6 +67,8 @@ class MacroManager(Manager):
             macro_plan: MacroPlan = MacroPlan()
             macro_plan.add(AutoSupply(self.ai.start_location))
             macro_plan.add(BuildWorkers(max_probes))
+            if self.can_expand:
+                macro_plan.add(ExpansionController(to_count=100, max_pending=2))
             macro_plan.add(
                 GasBuildingController(
                     to_count=self.gas_buildings_required,

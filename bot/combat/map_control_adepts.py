@@ -3,8 +3,6 @@ from itertools import cycle
 from typing import TYPE_CHECKING
 
 import numpy as np
-from sc2.ids.ability_id import AbilityId
-
 from ares import ManagerMediator
 from ares.behaviors.combat import CombatManeuver
 from ares.behaviors.combat.individual import (
@@ -13,6 +11,7 @@ from ares.behaviors.combat.individual import (
     ShootTargetInRange,
     UseAbility,
 )
+from sc2.ids.ability_id import AbilityId
 from sc2.units import Units
 from src.ares.consts import UnitTreeQueryType
 
