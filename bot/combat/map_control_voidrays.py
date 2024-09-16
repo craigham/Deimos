@@ -3,6 +3,8 @@ from itertools import cycle
 from typing import TYPE_CHECKING
 
 import numpy as np
+from sc2.ids.buff_id import BuffId
+
 from ares import ManagerMediator
 from ares.behaviors.combat import CombatManeuver
 from ares.behaviors.combat.individual import AttackTarget, UseAbility
@@ -18,6 +20,7 @@ from cython_extensions import (
     cy_closest_to,
     cy_distance_to_squared,
     cy_pick_enemy_target,
+    cy_center,
 )
 
 if TYPE_CHECKING:
@@ -82,7 +85,9 @@ class MapControlVoidrays(BaseUnit):
 
         for unit in units:
             unit_tag: int = unit.tag
-            close_enemy: Units = everything_near_voids[unit_tag]
+            close_enemy: Units = everything_near_voids[unit_tag].filter(
+                lambda u: not u.is_memory
+            )
 
             maneuver: CombatManeuver = CombatManeuver()
 
@@ -100,7 +105,7 @@ class MapControlVoidrays(BaseUnit):
                     < 36.0 + unit.radius + u.radius
                 ]:
                     armoured: list[Unit] = [u for u in in_attack_range if u.is_armored]
-                    if armoured:
+                    if armoured and unit.has_buff(BuffId.VOIDRAYSWARMDAMAGEBOOST):
                         maneuver.add(
                             UseAbility(
                                 AbilityId.EFFECT_VOIDRAYPRISMATICALIGNMENT, unit, None
