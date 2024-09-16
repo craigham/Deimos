@@ -69,7 +69,6 @@ class MapControlVoidrays(BaseUnit):
 
         if self.ai.is_visible(self.current_ol_spot_target):
             self.current_ol_spot_target = next(self.ol_spot_generator)
-
         grid: np.ndarray = kwargs["grid"]
         avoidance_grid: np.ndarray = self.mediator.get_air_avoidance_grid
         enemy_ground_threats: Units = (

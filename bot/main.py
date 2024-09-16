@@ -70,7 +70,7 @@ class MyBot(AresBot):
             and self._deimos_mediator.get_enemy_rushed
             and self.build_order_runner.chosen_opening != "OneBaseTempests"
             and not self.mediator.get_enemy_ravager_rush
-        ):
+        ) or self.minerals > 650:
             if self.mediator.get_enemy_roach_rushed:
                 for th in self.townhalls.not_ready:
                     self.mediator.cancel_structure(structure=th)

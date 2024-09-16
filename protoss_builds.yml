@@ -90,7 +90,6 @@ Builds:
             - 34 nexus
             - 34 adept *6
             - 34 chrono @ twilightcouncil
-            - 34 gas *2
             - 34 adept *2
     OneBaseTempests:
         ConstantWorkerProductionTill: 22
