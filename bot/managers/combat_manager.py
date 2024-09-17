@@ -82,6 +82,9 @@ class CombatManager(Manager):
             self.deimos_mediator.get_enemy_rushed
             and self.ai.time < 240.0
             and not self.manager_mediator.get_enemy_worker_rushed
+        ) or (
+            self.ai.build_order_runner.chosen_opening == "OneBaseTempests"
+            and len(self.manager_mediator.get_own_army_dict[UnitID.TEMPEST]) <= 3
         ):
             return self.ai.main_base_ramp.top_center
 
