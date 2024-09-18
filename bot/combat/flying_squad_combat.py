@@ -19,7 +19,7 @@ from sc2.units import Units
 
 from bot.combat.base_combat import BaseCombat
 from bot.consts import COMMON_UNIT_IGNORE_TYPES
-from cython_extensions import cy_closest_to, cy_in_attack_range
+from cython_extensions import cy_closest_to, cy_in_attack_range, cy_distance_to_squared
 
 if TYPE_CHECKING:
     from ares import ALL_STRUCTURES, AresBot, ManagerMediator
@@ -93,7 +93,9 @@ class FlyingSquadCombat(BaseCombat):
                     danger_to_air := [
                         u
                         for u in all_close_enemy
-                        if u.can_attack_air or u.type_id == UnitID.VOIDRAY
+                        if (u.can_attack_air or u.type_id == UnitID.VOIDRAY)
+                        and cy_distance_to_squared(u.position, unit.position)
+                        <= (unit.ground_range + unit.radius + u.radius)
                     ]
                 ):
                     attacking_maneuver.add(

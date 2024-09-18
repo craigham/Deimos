@@ -121,7 +121,7 @@ class CombatManager(Manager):
         # idea here is if we are near enemy structures/production, don't get distracted
         if (
             enemy_structure_pos
-            and cy_distance_to_squared(own_center_mass, enemy_structure_pos) < 920.0
+            and cy_distance_to_squared(own_center_mass, enemy_structure_pos) < 450.0
         ):
             return enemy_structure_pos
 
@@ -139,7 +139,7 @@ class CombatManager(Manager):
             distances=11.5,
             query_tree=UnitTreeQueryType.EnemyGround,
         )[0]
-        if self.ai.get_total_supply(all_close_enemy) >= 20:
+        if self.ai.get_total_supply(all_close_enemy) >= 18:
             return Point2(enemy_center_mass)
 
         if enemy_structure_pos:

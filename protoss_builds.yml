@@ -7,8 +7,9 @@ BuildChoices:
     test_123:
         BotName: Test
         Cycle:
-            # - AdeptVoidray
-            - OneBaseTempests
+            # - PhoenixEconomic
+            - AdeptVoidray
+            # - OneBaseTempests
 
     Protoss:
         BotName: ProtossRace
@@ -69,26 +70,30 @@ Builds:
             - 14 pylon @ ramp
             - 15 gate @ ramp
             - 15 chrono @ nexus
-            - 17 gas
+            - 16 gas
             - 15 worker_scout:
                 [ enemy_spawn ]
             - 20 core @ ramp
+            - 20 chrono @ nexus
             - 20 pylon
             - 20 nexus
-            - 21 gas
+            - 20 gas
             - 21 adept
-            - 21 chrono @ gateway
-            - 24 stargate
+            - 21 stargate
             - 24 warpgateresearch
             - 24 adept
+            - 24 chrono @ gateway
             - 26 voidray
             - 26 chrono @ stargate
+            - 24 adept
             - 30 twilightcouncil
             - 32 gateway *3
             - 32 adeptpiercingattack
             - 32 chrono @ twilightcouncil
             - 34 nexus
-            - 34 adept *6
+            - 34 adept *2
+            - 34 chrono @ twilightcouncil
+            - 34 adept *3
             - 34 chrono @ twilightcouncil
             - 34 adept *2
     OneBaseTempests:
