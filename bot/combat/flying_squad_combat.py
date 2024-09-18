@@ -2,21 +2,27 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cython_extensions import cy_in_attack_range, cy_closest_to
+from ares.behaviors.combat import CombatManeuver
+from ares.behaviors.combat.individual import (
+    AMove,
+    KeepUnitSafe,
+    PathUnitToTarget,
+    ShootTargetInRange,
+    StutterUnitBack,
+)
+from ares.consts import ALL_STRUCTURES
+from ares.managers.manager_mediator import ManagerMediator
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
 
-from ares.consts import ALL_STRUCTURES
-from ares.behaviors.combat import CombatManeuver
-from ares.managers.manager_mediator import ManagerMediator
-from ares.behaviors.combat.individual import ShootTargetInRange, AMove, StutterUnitBack, KeepUnitSafe, PathUnitToTarget
 from bot.combat.base_combat import BaseCombat
 from bot.consts import COMMON_UNIT_IGNORE_TYPES
+from cython_extensions import cy_closest_to, cy_in_attack_range
 
 if TYPE_CHECKING:
-    from ares import AresBot, ManagerMediator, ALL_STRUCTURES
+    from ares import ALL_STRUCTURES, AresBot, ManagerMediator
 
 
 @dataclass
@@ -66,7 +72,7 @@ class FlyingSquadCombat(BaseCombat):
             u
             for u in all_close_enemy
             if not (u.is_cloaked or u.is_cloaked and u.is_revealed)
-               and (not u.is_memory and u.type_id not in COMMON_UNIT_IGNORE_TYPES)
+            and (not u.is_memory and u.type_id not in COMMON_UNIT_IGNORE_TYPES)
         ]
 
         only_enemy_units: list[Unit] = [
@@ -83,15 +89,12 @@ class FlyingSquadCombat(BaseCombat):
 
             if valid_targets:
                 # attack anything in range
-                if (
-                    unit.can_attack_ground
-                    and (
-                        danger_to_air := [
-                            u
-                            for u in all_close_enemy
-                            if u.can_attack_air or u.type_id == UnitID.VOIDRAY
-                        ]
-                    )
+                if unit.can_attack_ground and (
+                    danger_to_air := [
+                        u
+                        for u in all_close_enemy
+                        if u.can_attack_air or u.type_id == UnitID.VOIDRAY
+                    ]
                 ):
                     attacking_maneuver.add(
                         ShootTargetInRange(unit=unit, targets=danger_to_air)

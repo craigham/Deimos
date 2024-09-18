@@ -2,17 +2,23 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cython_extensions import cy_in_attack_range, cy_closest_to
+from ares.behaviors.combat import CombatManeuver
+from ares.behaviors.combat.individual import (
+    AMove,
+    KeepUnitSafe,
+    PathUnitToTarget,
+    ShootTargetInRange,
+    StutterUnitBack,
+)
+from ares.consts import ALL_STRUCTURES
+from ares.managers.manager_mediator import ManagerMediator
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
-from ares.consts import ALL_STRUCTURES
-from ares.managers.manager_mediator import ManagerMediator
 
-from ares.behaviors.combat import CombatManeuver
-from ares.behaviors.combat.individual import ShootTargetInRange, StutterUnitBack, PathUnitToTarget, AMove, KeepUnitSafe
 from bot.combat.base_combat import BaseCombat
 from bot.consts import COMMON_UNIT_IGNORE_TYPES
+from cython_extensions import cy_closest_to, cy_in_attack_range
 
 if TYPE_CHECKING:
     from ares import AresBot, ManagerMediator

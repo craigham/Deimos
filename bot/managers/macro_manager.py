@@ -1,7 +1,5 @@
 from typing import TYPE_CHECKING
 
-from sc2.position import Point2
-
 from ares import ManagerMediator, UnitRole
 from ares.behaviors.macro import (
     AutoSupply,
@@ -14,6 +12,7 @@ from ares.behaviors.macro import (
     SpawnController,
 )
 from ares.managers.manager import Manager
+from sc2.position import Point2
 from sc2.units import Units
 
 from bot.managers.deimos_mediator import DeimosMediator

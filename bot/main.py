@@ -64,27 +64,37 @@ class MyBot(AresBot):
 
     async def on_step(self, iteration: int) -> None:
         await super(MyBot, self).on_step(iteration)
-
-        if (
-            not self.build_order_runner.build_completed
-            and self._deimos_mediator.get_enemy_rushed
-            and self.build_order_runner.chosen_opening != "OneBaseTempests"
-            and not self.mediator.get_enemy_ravager_rush
-        ) or self.minerals > 650:
-            if self.mediator.get_enemy_roach_rushed:
-                for th in self.townhalls.not_ready:
-                    self.mediator.cancel_structure(structure=th)
-
-            if not self._deimos_mediator.get_enemy_proxies:
-                worker_scouts: Units = self.mediator.get_units_from_role(
-                    role=UnitRole.BUILD_RUNNER_SCOUT, unit_type=self.worker_type
+        if not self.build_order_runner.build_completed:
+            if (
+                (
+                    self._deimos_mediator.get_enemy_rushed
+                    and self.build_order_runner.chosen_opening != "OneBaseTempests"
+                    and not self.mediator.get_enemy_ravager_rush
+                    and not self.mediator.get_enemy_roach_rushed
                 )
-                for scout in worker_scouts:
-                    self.mediator.assign_role(tag=scout.tag, role=UnitRole.GATHERING)
-                    scout.gather(self.mineral_field.closest_to(self.start_location))
+                or self.minerals > 800
+                or (
+                    self.mediator.get_enemy_roach_rushed
+                    and self.unit_pending(UnitID.VOIDRAY)
+                )
+                or (len(self.mediator.get_enemy_army_dict[UnitID.MARINE]) > 6)
+            ):
+                if self.mediator.get_enemy_roach_rushed:
+                    for th in self.townhalls.not_ready:
+                        self.mediator.cancel_structure(structure=th)
 
-            logger.info(f"{self.time_formatted}: Setting BO Completed")
-            self.build_order_runner.set_build_completed()
+                if not self._deimos_mediator.get_enemy_proxies:
+                    worker_scouts: Units = self.mediator.get_units_from_role(
+                        role=UnitRole.BUILD_RUNNER_SCOUT, unit_type=self.worker_type
+                    )
+                    for scout in worker_scouts:
+                        self.mediator.assign_role(
+                            tag=scout.tag, role=UnitRole.GATHERING
+                        )
+                        scout.gather(self.mineral_field.closest_to(self.start_location))
+
+                logger.info(f"{self.time_formatted}: Setting BO Completed")
+                self.build_order_runner.set_build_completed()
 
     async def on_unit_created(self, unit: Unit) -> None:
         await super(MyBot, self).on_unit_created(unit)

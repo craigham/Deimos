@@ -74,7 +74,9 @@ class MapControlAdepts(BaseCombat):
 
         for unit in units:
             unit_tag: int = unit.tag
-            close_enemy: Units = everything_near_adepts[unit_tag]
+            close_enemy: Units = everything_near_adepts[unit_tag].filter(
+                lambda u: not u.is_memory
+            )
 
             maneuver: CombatManeuver = CombatManeuver()
             maneuver.add(

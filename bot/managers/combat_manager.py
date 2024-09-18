@@ -1,38 +1,24 @@
 from itertools import cycle
 from typing import TYPE_CHECKING, Optional
 
-import numpy as np
 from ares import ManagerMediator
-from ares.behaviors.combat import CombatManeuver
-from ares.behaviors.combat.individual import (
-    AMove,
-    KeepUnitSafe,
-    PathUnitToTarget,
-    ShootTargetInRange,
-    StutterUnitBack,
-)
 from ares.cache import property_cache_once_per_frame
 from ares.consts import (
     ALL_STRUCTURES,
+    LOSS_DECISIVE_OR_WORSE,
+    VICTORY_CLOSE_OR_BETTER,
     WORKER_TYPES,
     EngagementResult,
     UnitRole,
     UnitTreeQueryType,
-    VICTORY_EMPHATIC_OR_BETTER,
-    LOSS_MARGINAL_OR_WORSE,
 )
 from ares.managers.manager import Manager
-from cython_extensions.units_utils import (
-    cy_closest_to,
-    cy_find_units_center_mass,
-    cy_in_attack_range,
-)
+from ares.managers.squad_manager import UnitSquad
+from cython_extensions.units_utils import cy_closest_to, cy_find_units_center_mass
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
-from sc2.unit import Unit
 from sc2.units import Units
 
-from ares.managers.squad_manager import UnitSquad
 from bot.combat.base_combat import BaseCombat
 from bot.combat.flying_squad_combat import FlyingSquadCombat
 from bot.combat.ground_squad_combat import GroundSquadCombat
@@ -53,8 +39,8 @@ class CombatManager(Manager):
         UnitID.CREEPTUMORBURROWED,
         UnitID.NYDUSCANAL,
     }
-    SQUAD_ENGAGE_THRESHOLD: set[EngagementResult] = VICTORY_EMPHATIC_OR_BETTER
-    SQUAD_DISENGAGE_THRESHOLD: set[EngagementResult] = LOSS_MARGINAL_OR_WORSE
+    SQUAD_ENGAGE_THRESHOLD: set[EngagementResult] = VICTORY_CLOSE_OR_BETTER
+    SQUAD_DISENGAGE_THRESHOLD: set[EngagementResult] = LOSS_DECISIVE_OR_WORSE
     defensive_voidrays: BaseCombat
 
     def __init__(
@@ -97,12 +83,19 @@ class CombatManager(Manager):
             return cy_closest_to(self.ai.start_location, air).position
 
         if (
-            self.deimos_mediator.get_enemy_rushed
-            and self.ai.time < 240.0
-            and not self.manager_mediator.get_enemy_worker_rushed
-        ) or (
-            self.ai.build_order_runner.chosen_opening == "OneBaseTempests"
-            and len(self.manager_mediator.get_own_army_dict[UnitID.TEMPEST]) <= 3
+            (
+                self.deimos_mediator.get_enemy_rushed
+                and self.ai.time < 240.0
+                and not self.manager_mediator.get_enemy_worker_rushed
+            )
+            or (
+                self.ai.build_order_runner.chosen_opening == "OneBaseTempests"
+                and len(self.manager_mediator.get_own_army_dict[UnitID.TEMPEST]) <= 3
+            )
+            or (
+                len(self.manager_mediator.get_enemy_army_dict[UnitID.MARINE]) > 6
+                and self.ai.supply_army < 16
+            )
         ):
             return self.ai.main_base_ramp.top_center
 
@@ -219,7 +212,9 @@ class CombatManager(Manager):
         )
 
         for squad in squads:
-            move_to: Point2 = self.attack_target if squad.main_squad else pos_of_main_squad
+            move_to: Point2 = (
+                self.attack_target if squad.main_squad else pos_of_main_squad
+            )
             all_close_enemy: Units = self.manager_mediator.get_units_in_range(
                 start_points=[squad.squad_position],
                 distances=18.5,

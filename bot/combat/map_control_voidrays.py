@@ -3,13 +3,12 @@ from itertools import cycle
 from typing import TYPE_CHECKING
 
 import numpy as np
-from sc2.ids.buff_id import BuffId
-
 from ares import ManagerMediator
 from ares.behaviors.combat import CombatManeuver
 from ares.behaviors.combat.individual import AttackTarget, UseAbility
 from map_analyzer import MapData
 from sc2.ids.ability_id import AbilityId
+from sc2.ids.buff_id import BuffId
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
@@ -17,10 +16,10 @@ from src.ares.consts import UnitTreeQueryType
 
 from bot.combat.base_combat import BaseCombat
 from cython_extensions import (
+    cy_center,
     cy_closest_to,
     cy_distance_to_squared,
     cy_pick_enemy_target,
-    cy_center,
 )
 
 if TYPE_CHECKING:

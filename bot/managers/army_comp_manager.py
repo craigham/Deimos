@@ -106,6 +106,12 @@ class ArmyCompManager(Manager):
         }
 
     @property
+    def stalker_comp(self) -> dict:
+        return {
+            UnitID.STALKER: {"proportion": 1.0, "priority": 0},
+        }
+
+    @property
     def tempests_comp(self) -> dict:
         return {
             UnitID.TEMPEST: {"proportion": 1.0, "priority": 0},
@@ -122,6 +128,11 @@ class ArmyCompManager(Manager):
             self._army_comp = self.zealot_only
         elif self.ai.build_order_runner.chosen_opening == "OneBaseTempests":
             self._army_comp = self.tempests_comp
+        elif (
+            len(self.manager_mediator.get_enemy_army_dict[UnitID.MARINE]) > 6
+            and self.ai.supply_army < 32
+        ):
+            self._army_comp = self.stalker_comp
         elif self.ai.supply_used > 114:
             self._army_comp = self.stalker_tempests_comp
         elif self.manager_mediator.get_enemy_ling_rushed and self.ai.supply_army < 20:
