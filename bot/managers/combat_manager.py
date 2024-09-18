@@ -79,6 +79,13 @@ class CombatManager(Manager):
     def attack_target(self) -> Point2:
         """Quick attack target implementation, improve this later."""
         if (
+            self.ai.build_order_runner.chosen_opening == "OneBaseTempests"
+            and self.ai.time < 480.0
+            and (air := self.ai.enemy_units({UnitID.VOIDRAY, UnitID.TEMPEST}))
+        ):
+            return cy_closest_to(self.ai.start_location, air).position
+
+        if (
             self.deimos_mediator.get_enemy_rushed
             and self.ai.time < 240.0
             and not self.manager_mediator.get_enemy_worker_rushed
@@ -87,13 +94,6 @@ class CombatManager(Manager):
             and len(self.manager_mediator.get_own_army_dict[UnitID.TEMPEST]) <= 3
         ):
             return self.ai.main_base_ramp.top_center
-
-        if (
-            self.ai.build_order_runner.chosen_opening == "OneBaseTempests"
-            and self.ai.time < 480.0
-            and (voids := self.ai.enemy_units(UnitID.VOIDRAY))
-        ):
-            return cy_closest_to(self.ai.start_location, voids).position
 
         enemy_structure_pos: Optional[Point2] = None
         if enemy_structures := self.ai.enemy_structures.filter(
