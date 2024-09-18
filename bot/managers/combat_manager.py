@@ -18,6 +18,8 @@ from ares.consts import (
     EngagementResult,
     UnitRole,
     UnitTreeQueryType,
+    VICTORY_EMPHATIC_OR_BETTER,
+    LOSS_MARGINAL_OR_WORSE,
 )
 from ares.managers.manager import Manager
 from cython_extensions.units_utils import (
@@ -30,7 +32,10 @@ from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
 
-from bot.combat.base_unit import BaseUnit
+from ares.managers.squad_manager import UnitSquad
+from bot.combat.base_combat import BaseCombat
+from bot.combat.flying_squad_combat import FlyingSquadCombat
+from bot.combat.ground_squad_combat import GroundSquadCombat
 from bot.consts import COMMON_UNIT_IGNORE_TYPES, STEAL_FROM_ROLES
 from bot.managers.deimos_mediator import DeimosMediator
 from cython_extensions import cy_distance_to_squared
@@ -48,7 +53,9 @@ class CombatManager(Manager):
         UnitID.CREEPTUMORBURROWED,
         UnitID.NYDUSCANAL,
     }
-    defensive_voidrays: BaseUnit
+    SQUAD_ENGAGE_THRESHOLD: set[EngagementResult] = VICTORY_EMPHATIC_OR_BETTER
+    SQUAD_DISENGAGE_THRESHOLD: set[EngagementResult] = LOSS_MARGINAL_OR_WORSE
+    defensive_voidrays: BaseCombat
 
     def __init__(
         self,
@@ -74,6 +81,10 @@ class CombatManager(Manager):
         self.expansions_generator = None
         self.current_base_target: Point2 = self.ai.enemy_start_locations[0]
         self.aggressive: bool = False
+        self._squad_id_to_engage_tracker: dict[str, bool] = dict()
+
+        self.ground_squad_combat: BaseCombat = GroundSquadCombat(ai, config, mediator)
+        self.flying_squad_combat: BaseCombat = FlyingSquadCombat(ai, config, mediator)
 
     @property_cache_once_per_frame
     def attack_target(self) -> Point2:
@@ -173,7 +184,7 @@ class CombatManager(Manager):
         self._check_aggressive_status()
         self._manage_combat_roles()
 
-        self._handle_attackers()
+        self._manage_main_combat()
         # self._handle_defenders()
 
     def _manage_combat_roles(self) -> None:
@@ -194,83 +205,95 @@ class CombatManager(Manager):
         # else:
         #     self.aggressive = self.main_fight_result in VICTORY_DECISIVE_OR_BETTER
 
-    def _handle_attackers(self):
-        air_grid: np.ndarray = self.manager_mediator.get_air_grid
-        ground_grid: np.ndarray = self.manager_mediator.get_ground_grid
-        army: Units = self.manager_mediator.get_units_from_role(role=UnitRole.ATTACKING)
-        near_enemy: dict[int, Units] = self.manager_mediator.get_units_in_range(
-            start_points=army,
-            distances=15,
-            query_tree=UnitTreeQueryType.AllEnemy,
-            return_as_dict=True,
+    def _manage_main_combat(self) -> None:
+        squads: list[UnitSquad] = self.manager_mediator.get_squads(
+            role=UnitRole.ATTACKING, squad_radius=9.0
         )
-        for s in army:
-            grid: np.ndarray = air_grid if s.is_flying else ground_grid
-            type_id: UnitID = s.type_id
-            if type_id == UnitID.OBSERVER:
-                s.move(Point2(cy_find_units_center_mass(army, 8.0)[0]))
-                continue
-            if type_id == UnitID.ZEALOT:
-                s.attack(self.attack_target)
-                continue
+        if len(squads) == 0:
+            return
 
-            attacking_maneuver: CombatManeuver = CombatManeuver()
+        army: Units = self.manager_mediator.get_units_from_role(role=UnitRole.ATTACKING)
 
-            # we already calculated close enemies, use unit tag to retrieve them
-            all_close: Units = near_enemy[s.tag].filter(
-                lambda u: (not u.is_cloaked or u.is_cloaked and u.is_revealed)
-                and (not u.is_memory and u.type_id not in COMMON_UNIT_IGNORE_TYPES)
+        pos_of_main_squad: Point2 = self.manager_mediator.get_position_of_main_squad(
+            role=UnitRole.ATTACKING
+        )
+
+        for squad in squads:
+            move_to: Point2 = self.attack_target if squad.main_squad else pos_of_main_squad
+            all_close_enemy: Units = self.manager_mediator.get_units_in_range(
+                start_points=[squad.squad_position],
+                distances=18.5,
+                query_tree=UnitTreeQueryType.AllEnemy,
+            )[0].filter(lambda u: u.type_id not in COMMON_UNIT_IGNORE_TYPES)
+
+            self._track_squad_engagement(army, squad)
+            can_engage: bool = self._squad_id_to_engage_tracker[squad.squad_id]
+
+            ground, flying = self.ai.split_ground_fliers(
+                squad.squad_units, return_as_lists=True
             )
-            only_enemy_units: Units = all_close.filter(
-                lambda u: u.type_id not in ALL_STRUCTURES
-            )
-            # enemy around, engagement control
-            if all_close:
-                if (
-                    s.is_flying
-                    and s.can_attack_ground
-                    and (
-                        danger_to_air := [
-                            u
-                            for u in all_close
-                            if u.can_attack_air or u.type_id == UnitID.VOIDRAY
-                        ]
-                    )
-                ):
-                    attacking_maneuver.add(
-                        ShootTargetInRange(unit=s, targets=danger_to_air)
-                    )
-                elif in_attack_range_e := cy_in_attack_range(s, only_enemy_units):
-                    # `ShootTargetInRange` will check weapon is ready
-                    # otherwise it will not execute
-                    attacking_maneuver.add(
-                        ShootTargetInRange(unit=s, targets=in_attack_range_e)
-                    )
-                # then enemy structures
-                elif in_attack_range := cy_in_attack_range(s, all_close):
-                    attacking_maneuver.add(
-                        ShootTargetInRange(unit=s, targets=in_attack_range)
-                    )
 
-                if type_id == UnitID.TEMPEST and s.shield_health_percentage < 0.2:
-                    attacking_maneuver.add(KeepUnitSafe(unit=s, grid=grid))
-
-                # low shield, keep protoss units safe
-                elif s.shield_percentage < 0.3:
-                    attacking_maneuver.add(KeepUnitSafe(unit=s, grid=grid))
-
-                else:
-                    enemy_target: Unit = cy_closest_to(s.position, all_close)
-                    attacking_maneuver.add(
-                        StutterUnitBack(unit=s, target=enemy_target, grid=grid)
-                    )
-
-            # no enemy around, path to the attack target
-            else:
-                attacking_maneuver.add(
-                    PathUnitToTarget(unit=s, grid=grid, target=self.attack_target)
+            if flying:
+                self.flying_squad_combat.execute(
+                    flying,
+                    all_close_enemy=all_close_enemy,
+                    can_engage=can_engage,
+                    main_squad=squad.main_squad,
+                    target=move_to,
                 )
-                attacking_maneuver.add(AMove(unit=s, target=self.attack_target))
+            if ground:
+                self.ground_squad_combat.execute(
+                    ground,
+                    all_close_enemy=all_close_enemy,
+                    can_engage=can_engage,
+                    main_squad=squad.main_squad,
+                    target=move_to,
+                )
 
-            # DON'T FORGET TO REGISTER OUR COMBAT MANEUVER!!
-            self.ai.register_behavior(attacking_maneuver)
+    def _track_squad_engagement(self, attackers: Units, squad: UnitSquad) -> None:
+        """
+        Not only do we check units in this squad, we should check all
+        our units with UnitRole.Attacking, since another squad might be
+        situated in a flank position etc.
+
+        Parameters
+        ----------
+        close_enemy
+        squad
+
+        Returns
+        -------
+
+        """
+        close_enemy: Units = self.manager_mediator.get_units_in_range(
+            start_points=[squad.squad_position],
+            distances=25.5,
+            query_tree=UnitTreeQueryType.AllEnemy,
+        )[0]
+
+        squad_id: str = squad.squad_id
+        if squad_id not in self._squad_id_to_engage_tracker:
+            self._squad_id_to_engage_tracker[squad_id] = False
+
+        # no enemy nearby, makes no sense to engage
+        if not close_enemy:
+            self._squad_id_to_engage_tracker[squad_id] = False
+            return
+
+        enemy_pos: Point2 = close_enemy.center
+
+        own_attackers_nearby: Units = attackers.filter(
+            lambda a: cy_distance_to_squared(a.position, enemy_pos) < 240.0
+        )
+
+        fight_result: EngagementResult = self.manager_mediator.can_win_fight(
+            own_units=own_attackers_nearby, enemy_units=close_enemy
+        )
+
+        # currently engaging, see if we should disengage
+        if self._squad_id_to_engage_tracker[squad.squad_id]:
+            if fight_result in self.SQUAD_DISENGAGE_THRESHOLD:
+                self._squad_id_to_engage_tracker[squad.squad_id] = False
+        # not engaging, check if we can
+        elif fight_result in self.SQUAD_ENGAGE_THRESHOLD:
+            self._squad_id_to_engage_tracker[squad.squad_id] = True

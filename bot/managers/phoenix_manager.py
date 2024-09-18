@@ -17,7 +17,7 @@ from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
 
-from bot.combat.base_unit import BaseUnit
+from bot.combat.base_combat import BaseCombat
 from bot.combat.phoenix_harass import PhoenixHarass
 from bot.consts import COMMON_UNIT_IGNORE_TYPES, STEAL_FROM_ROLES
 from bot.managers.deimos_mediator import DeimosMediator
@@ -51,7 +51,7 @@ class PhoenixManager(Manager):
         """
         super().__init__(ai, config, mediator)
 
-        self._phoenix_harass: BaseUnit = PhoenixHarass(ai, config, mediator)
+        self._phoenix_harass: BaseCombat = PhoenixHarass(ai, config, mediator)
 
         # TODO: make the target more sophisticated
         self.phoenix_harass_target: Point2 = ai.enemy_start_locations[0]

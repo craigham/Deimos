@@ -20,7 +20,7 @@ from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
 
-from bot.combat.base_unit import BaseUnit
+from bot.combat.base_combat import BaseCombat
 from cython_extensions import cy_closest_to, cy_in_attack_range
 
 if TYPE_CHECKING:
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class PhoenixHarass(BaseUnit):
+class PhoenixHarass(BaseCombat):
     """Execute behavior for Oracle harass.
 
     Called from `OracleManager`

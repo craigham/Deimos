@@ -21,7 +21,7 @@ from sc2.units import Units
 
 from bot.combat.adept_harass import AdeptHarass
 from bot.combat.adept_shade_harass import AdeptShadeHarass
-from bot.combat.base_unit import BaseUnit
+from bot.combat.base_combat import BaseCombat
 from bot.combat.map_control_adepts import MapControlAdepts
 from bot.combat.map_control_shades import MapControlShades
 from bot.consts import RequestType
@@ -35,8 +35,8 @@ if TYPE_CHECKING:
 class AdeptManager(Manager):
     deimos_mediator: DeimosMediator
 
-    map_control_adepts: BaseUnit
-    map_control_shades: BaseUnit
+    map_control_adepts: BaseCombat
+    map_control_shades: BaseCombat
 
     def __init__(
         self,
@@ -64,8 +64,8 @@ class AdeptManager(Manager):
             RequestType.GET_ADEPT_TO_PHASE: lambda kwargs: self._adept_to_phase,
         }
 
-        self._adept_harass: BaseUnit = AdeptHarass(ai, config, mediator)
-        self._adept_shade_harass: BaseUnit = AdeptShadeHarass(ai, config, mediator)
+        self._adept_harass: BaseCombat = AdeptHarass(ai, config, mediator)
+        self._adept_shade_harass: BaseCombat = AdeptShadeHarass(ai, config, mediator)
 
         # adept tag to phase tag
         self._adept_to_phase: dict[int, int] = dict()
@@ -77,10 +77,10 @@ class AdeptManager(Manager):
         self._assigned_map_control_adept: bool = False
 
     def initialise(self) -> None:
-        self.map_control_adepts: BaseUnit = MapControlAdepts(
+        self.map_control_adepts: BaseCombat = MapControlAdepts(
             self.ai, self.config, self.ai.mediator
         )
-        self.map_control_shades: BaseUnit = MapControlShades(
+        self.map_control_shades: BaseCombat = MapControlShades(
             self.ai, self.config, self.ai.mediator
         )
 

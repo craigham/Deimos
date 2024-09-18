@@ -17,7 +17,7 @@ from sc2.unit import Unit
 from sc2.units import Units
 from src.ares.consts import ALL_STRUCTURES, WORKER_TYPES
 
-from bot.combat.base_unit import BaseUnit
+from bot.combat.base_combat import BaseCombat
 from bot.consts import COMMON_UNIT_IGNORE_TYPES
 from cython_extensions import (
     cy_attack_ready,
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class AdeptHarass(BaseUnit):
+class AdeptHarass(BaseCombat):
     """Execute behavior for Oracle harass.
 
     Called from `AdeptManager`

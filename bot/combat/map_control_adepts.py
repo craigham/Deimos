@@ -15,14 +15,14 @@ from sc2.ids.ability_id import AbilityId
 from sc2.units import Units
 from src.ares.consts import UnitTreeQueryType
 
-from bot.combat.base_unit import BaseUnit
+from bot.combat.base_combat import BaseCombat
 
 if TYPE_CHECKING:
     from ares import AresBot
 
 
 @dataclass
-class MapControlAdepts(BaseUnit):
+class MapControlAdepts(BaseCombat):
     """Execute behavior for map control adepts.
 
     Parameters

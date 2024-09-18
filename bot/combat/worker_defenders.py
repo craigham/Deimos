@@ -11,7 +11,7 @@ from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
 
-from bot.combat.base_unit import BaseUnit
+from bot.combat.base_combat import BaseCombat
 from cython_extensions import (
     cy_attack_ready,
     cy_center,
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class WorkerDefenders(BaseUnit):
+class WorkerDefenders(BaseCombat):
     """Execute behavior for mines and medivac in a mine drop.
 
     Called from `ScoutManager`

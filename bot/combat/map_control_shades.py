@@ -7,7 +7,7 @@ from ares.managers.squad_manager import UnitSquad
 from sc2.ids.ability_id import AbilityId
 from sc2.units import Units
 
-from bot.combat.base_unit import BaseUnit
+from bot.combat.base_combat import BaseCombat
 from cython_extensions import cy_distance_to_squared
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class MapControlShades(BaseUnit):
+class MapControlShades(BaseCombat):
     """Execute behavior for map control shades.
 
     Parameters

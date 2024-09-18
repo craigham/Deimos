@@ -7,7 +7,7 @@ from sc2.data import Race
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.units import Units
 
-from bot.combat.base_unit import BaseUnit
+from bot.combat.base_combat import BaseCombat
 from bot.combat.map_control_voidrays import MapControlVoidrays
 from bot.consts import STEAL_FROM_ROLES, UnitRole
 from bot.managers.deimos_mediator import DeimosMediator
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class MapControlManager(Manager):
     deimos_mediator: DeimosMediator
 
-    map_control_voidrays: BaseUnit
+    map_control_voidrays: BaseCombat
 
     def __init__(
         self,
@@ -41,7 +41,7 @@ class MapControlManager(Manager):
         super().__init__(ai, config, mediator)
 
     def initialise(self) -> None:
-        self.map_control_voidrays: BaseUnit = MapControlVoidrays(
+        self.map_control_voidrays: BaseCombat = MapControlVoidrays(
             self.ai, self.config, self.ai.mediator
         )
 

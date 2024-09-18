@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from ares import AresBot
 
 
-class BaseUnit(Protocol):
+class BaseCombat(Protocol):
     """Basic interface that all combat classes should follow.
 
     Parameters

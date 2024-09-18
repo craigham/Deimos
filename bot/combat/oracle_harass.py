@@ -14,7 +14,7 @@ from sc2.unit import Unit
 from sc2.units import Units
 
 from bot.behaviors.oracle_kite_forward import OracleKiteForward
-from bot.combat.base_unit import BaseUnit
+from bot.combat.base_combat import BaseCombat
 from cython_extensions import cy_closest_to, cy_distance_to, cy_pick_enemy_target
 
 if TYPE_CHECKING:
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class OracleHarass(BaseUnit):
+class OracleHarass(BaseCombat):
     """Execute behavior for Oracle harass.
 
     Called from `OracleManager`

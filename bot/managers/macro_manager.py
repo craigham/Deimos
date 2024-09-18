@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 
+from sc2.position import Point2
+
 from ares import ManagerMediator, UnitRole
 from ares.behaviors.macro import (
     AutoSupply,
@@ -42,6 +44,8 @@ class MacroManager(Manager):
         """
         super().__init__(ai, config, mediator)
 
+        self._main_building_location: Point2 = self.ai.start_location
+
     @property
     def can_expand(self) -> bool:
         if self.deimos_mediator.get_enemy_rushed and self.ai.supply_army < 22:
@@ -60,12 +64,15 @@ class MacroManager(Manager):
         return gas_required
 
     async def update(self, iteration: int) -> None:
+        if iteration % 16 == 0:
+            self._check_building_location()
+
         self._do_mining()
         if self.ai.build_order_runner.build_completed:
             max_probes: int = min(66, 22 * len(self.ai.townhalls))
 
             macro_plan: MacroPlan = MacroPlan()
-            macro_plan.add(AutoSupply(self.ai.start_location))
+            macro_plan.add(AutoSupply(self._main_building_location))
             macro_plan.add(BuildWorkers(max_probes))
             if self.can_expand:
                 macro_plan.add(ExpansionController(to_count=100, max_pending=2))
@@ -78,7 +85,7 @@ class MacroManager(Manager):
             macro_plan.add(
                 ProductionController(
                     self.deimos_mediator.get_army_comp,
-                    base_location=self.ai.start_location,
+                    base_location=self._main_building_location,
                 )
             )
             macro_plan.add(
@@ -104,3 +111,9 @@ class MacroManager(Manager):
         ) or len(gatherers) < 12:
             num_workers_per_gas: int = 0
         self.ai.register_behavior(Mining(workers_per_gas=num_workers_per_gas))
+
+    def _check_building_location(self):
+        if self.ai.time > 540.0 and self.ai.ready_townhalls:
+            self._main_building_location = self.ai.ready_townhalls.furthest_to(
+                self.ai.start_location
+            ).position

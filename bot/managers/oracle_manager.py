@@ -10,7 +10,7 @@ from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
 
-from bot.combat.base_unit import BaseUnit
+from bot.combat.base_combat import BaseCombat
 from bot.combat.oracle_harass import OracleHarass
 from bot.consts import STEAL_FROM_ROLES
 from bot.managers.deimos_mediator import DeimosMediator
@@ -46,7 +46,7 @@ class OracleManager(Manager):
         """
         super().__init__(ai, config, mediator)
 
-        self._oracle_harass: BaseUnit = OracleHarass(ai, config, mediator)
+        self._oracle_harass: BaseCombat = OracleHarass(ai, config, mediator)
         # self._oracle_scout: BaseUnit = OracleScout(ai, config, mediator)
 
         # TODO: make the target more sophisticated
