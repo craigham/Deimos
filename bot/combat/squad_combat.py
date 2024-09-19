@@ -62,6 +62,7 @@ class SquadCombat(BaseCombat):
         -------
         """
         all_close_enemy: Units = kwargs["all_close_enemy"]
+        always_fight_near_enemy: bool = kwargs["always_fight_near_enemy"]
         can_engage: bool = kwargs["can_engage"]
         main_squad: bool = kwargs["main_squad"]
         target: Point2 = kwargs["target"]
@@ -119,7 +120,7 @@ class SquadCombat(BaseCombat):
                         ShootTargetInRange(unit=unit, targets=in_attack_range)
                     )
 
-                if len(valid_targets) > 2:
+                if len(valid_targets) > 2 or always_fight_near_enemy:
                     if can_engage and unit.shield_health_percentage > 0.2:
                         enemy_target: Unit = cy_closest_to(unit.position, valid_targets)
                         if unit.ground_range < 3.0:

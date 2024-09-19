@@ -130,7 +130,7 @@ class AdeptManager(Manager):
 
         # adepts are assigned defending by default
         defending_adepts: Units = self.manager_mediator.get_units_from_role(
-            role=UnitRole.DEFENDING, unit_type=UnitID.ADEPT
+            role=UnitRole.ATTACKING, unit_type=UnitID.ADEPT
         )
         self._manage_adept_roles(defending_adepts)
 

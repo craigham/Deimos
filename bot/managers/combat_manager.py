@@ -1,7 +1,7 @@
 from itertools import cycle
 from typing import TYPE_CHECKING, Optional
 
-from sc2.unit import Unit
+from loguru import logger
 
 from ares import ManagerMediator
 from ares.cache import property_cache_once_per_frame
@@ -14,14 +14,11 @@ from ares.consts import (
     EngagementResult,
     UnitRole,
     UnitTreeQueryType,
+    LOSS_EMPHATIC_OR_WORSE,
 )
 from ares.managers.manager import Manager
 from ares.managers.squad_manager import UnitSquad
-from cython_extensions.units_utils import (
-    cy_closest_to,
-    cy_find_units_center_mass,
-    cy_sorted_by_distance_to,
-)
+from cython_extensions.units_utils import cy_closest_to, cy_find_units_center_mass
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
 from sc2.units import Units
@@ -79,6 +76,10 @@ class CombatManager(Manager):
         self.ground_squad_combat: BaseCombat = SquadCombat(ai, config, mediator)
 
     @property_cache_once_per_frame
+    def rally_point(self) -> Point2:
+        return self.ai.main_base_ramp.top_center
+
+    @property_cache_once_per_frame
     def attack_target(self) -> Point2:
         """Quick attack target implementation, improve this later."""
         if (
@@ -103,7 +104,7 @@ class CombatManager(Manager):
                 and self.ai.supply_army < 16
             )
         ):
-            return self.ai.main_base_ramp.top_center
+            return self.rally_point
 
         enemy_structure_pos: Optional[Point2] = None
         if enemy_structures := self.ai.enemy_structures.filter(
@@ -181,7 +182,7 @@ class CombatManager(Manager):
 
     async def update(self, iteration: int) -> None:
         self._check_aggressive_status()
-        self._manage_combat_roles()
+        # self._manage_combat_roles()
 
         self._manage_main_combat()
         # self._handle_defenders()
@@ -197,12 +198,14 @@ class CombatManager(Manager):
             )
 
     def _check_aggressive_status(self) -> None:
-        self.aggressive = True
-        # TODO: Example future logic
-        # if self.aggressive:
-        #     self.aggressive = self.main_fight_result not in LOSS_EMPHATIC_OR_WORSE
-        # else:
-        #     self.aggressive = self.main_fight_result in VICTORY_DECISIVE_OR_BETTER
+        if self.aggressive:
+            self.aggressive = self.main_fight_result not in LOSS_EMPHATIC_OR_WORSE
+            if not self.aggressive:
+                logger.info(f"{self.ai.time_formatted} - Turned aggression off")
+        else:
+            self.aggressive = self.main_fight_result in VICTORY_MARGINAL_OR_BETTER
+            if self.aggressive:
+                logger.info(f"{self.ai.time_formatted} - Turned aggression on")
 
     def _manage_main_combat(self) -> None:
         squads: list[UnitSquad] = self.manager_mediator.get_squads(
@@ -216,11 +219,25 @@ class CombatManager(Manager):
         pos_of_main_squad: Point2 = self.manager_mediator.get_position_of_main_squad(
             role=UnitRole.ATTACKING
         )
+        main_target: Point2 = (
+            self.attack_target if self.aggressive else self.rally_point
+        )
 
         for squad in squads:
             move_to: Point2 = (
-                self.attack_target if squad.main_squad else pos_of_main_squad
+                main_target
+                if squad.main_squad or not self.aggressive
+                else pos_of_main_squad
             )
+            if not self.aggressive:
+                if (
+                    ground_threats := self.manager_mediator.get_main_ground_threats_near_townhall
+                ):
+                    move_to = ground_threats.center
+                elif (
+                    air_threats := self.manager_mediator.get_main_air_threats_near_townhall
+                ):
+                    move_to = air_threats.center
             all_close_enemy: Units = self.manager_mediator.get_units_in_range(
                 start_points=[squad.squad_position],
                 distances=18.5,
@@ -236,6 +253,9 @@ class CombatManager(Manager):
 
             self.ground_squad_combat.execute(
                 squad.squad_units,
+                always_fight_near_enemy=not self.aggressive
+                and cy_distance_to_squared(squad.squad_position, self.attack_target)
+                > 900,
                 all_close_enemy=all_close_enemy,
                 can_engage=can_engage,
                 main_squad=squad.main_squad,
@@ -321,6 +341,12 @@ class CombatManager(Manager):
         squad_id: str = squad.squad_id
         if squad_id not in self._squad_id_to_engage_tracker:
             self._squad_id_to_engage_tracker[squad_id] = False
+
+        # if we are defending just keep this True for now
+        # maybe improve later
+        if not self.aggressive:
+            self._squad_id_to_engage_tracker[squad_id] = True
+            return
 
         # no enemy nearby, makes no sense to engage
         if not close_enemy:

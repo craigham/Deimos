@@ -105,7 +105,7 @@ class MyBot(AresBot):
 
         # assign everything else to defend by default
         # other managers can reassign as needed
-        self.mediator.assign_role(tag=unit.tag, role=UnitRole.DEFENDING)
+        self.mediator.assign_role(tag=unit.tag, role=UnitRole.ATTACKING)
 
     """
     Can use `python-sc2` hooks as usual, but make a call the inherited method in the superclass
