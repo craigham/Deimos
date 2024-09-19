@@ -86,6 +86,7 @@ class MapControlVoidrays(BaseCombat):
             close_enemy: Units = everything_near_voids[unit_tag].filter(
                 lambda u: not u.is_memory
             )
+            flying: list[Unit] = [u for u in close_enemy if u.is_flying]
 
             maneuver: CombatManeuver = CombatManeuver()
 
@@ -96,6 +97,14 @@ class MapControlVoidrays(BaseCombat):
                 ):
                     target: Unit = cy_pick_enemy_target(close_enemy)
                     maneuver.add(UseAbility(AbilityId.MOVE_MOVE, unit, target))
+                elif flying_in_attack_range := [
+                    u
+                    for u in flying
+                    if cy_distance_to_squared(unit.position, u.position)
+                    < 36.0 + unit.radius + u.radius
+                ]:
+                    target: Unit = cy_pick_enemy_target(flying_in_attack_range)
+                    maneuver.add(AttackTarget(unit=unit, target=target))
                 elif in_attack_range := [
                     u
                     for u in close_enemy

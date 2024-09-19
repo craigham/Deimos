@@ -1,31 +1,32 @@
 from itertools import cycle
 from typing import TYPE_CHECKING, Optional
 
-from loguru import logger
+from sc2.data import Race
 
 from ares import ManagerMediator
 from ares.cache import property_cache_once_per_frame
 from ares.consts import (
     ALL_STRUCTURES,
+    LOSS_EMPHATIC_OR_WORSE,
     LOSS_OVERWHELMING_OR_WORSE,
+    TOWNHALL_TYPES,
     VICTORY_MARGINAL_OR_BETTER,
     WORKER_TYPES,
-    TOWNHALL_TYPES,
     EngagementResult,
     UnitRole,
     UnitTreeQueryType,
-    LOSS_EMPHATIC_OR_WORSE,
 )
 from ares.managers.manager import Manager
 from ares.managers.squad_manager import UnitSquad
 from cython_extensions.units_utils import cy_closest_to, cy_find_units_center_mass
+from loguru import logger
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
 from sc2.units import Units
 
 from bot.combat.base_combat import BaseCombat
 from bot.combat.squad_combat import SquadCombat
-from bot.consts import COMMON_UNIT_IGNORE_TYPES, STEAL_FROM_ROLES, STATIC_DEFENCE
+from bot.consts import COMMON_UNIT_IGNORE_TYPES, STATIC_DEFENCE, STEAL_FROM_ROLES
 from bot.managers.deimos_mediator import DeimosMediator
 from cython_extensions import cy_distance_to_squared
 
@@ -198,7 +199,10 @@ class CombatManager(Manager):
             )
 
     def _check_aggressive_status(self) -> None:
-        if self.aggressive:
+        if self.ai.enemy_race == Race.Zerg:
+            self.aggressive = True
+
+        elif self.aggressive:
             self.aggressive = self.main_fight_result not in LOSS_EMPHATIC_OR_WORSE
             if not self.aggressive:
                 logger.info(f"{self.ai.time_formatted} - Turned aggression off")

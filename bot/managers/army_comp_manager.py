@@ -1,9 +1,8 @@
 from typing import TYPE_CHECKING, Any
 
-from sc2.data import Race
-
 from ares import ManagerMediator
 from ares.managers.manager import Manager
+from sc2.data import Race
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 
 from bot.consts import RequestType

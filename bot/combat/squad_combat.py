@@ -5,6 +5,7 @@ import numpy as np
 from ares.behaviors.combat import CombatManeuver
 from ares.behaviors.combat.individual import (
     AMove,
+    AttackTarget,
     KeepUnitSafe,
     PathUnitToTarget,
     ShootTargetInRange,
@@ -12,14 +13,21 @@ from ares.behaviors.combat.individual import (
 )
 from ares.consts import ALL_STRUCTURES
 from ares.managers.manager_mediator import ManagerMediator
+from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
-from sc2.ids.unit_typeid import UnitTypeId as UnitID
 
 from bot.combat.base_combat import BaseCombat
 from bot.consts import COMMON_UNIT_IGNORE_TYPES
-from cython_extensions import cy_closest_to, cy_in_attack_range, cy_distance_to_squared
+from cython_extensions import (
+    cy_attack_ready,
+    cy_closest_to,
+    cy_distance_to,
+    cy_distance_to_squared,
+    cy_in_attack_range,
+    cy_pick_enemy_target,
+)
 
 if TYPE_CHECKING:
     from ares import AresBot, ManagerMediator
@@ -99,14 +107,22 @@ class SquadCombat(BaseCombat):
                             u
                             for u in all_close_enemy
                             if (u.can_attack_air or u.type_id == UnitID.VOIDRAY)
-                            and cy_distance_to_squared(u.position, unit.position)
-                            <= (unit.ground_range + unit.radius + u.radius)
+                            and cy_distance_to(u.position, unit.position)
+                            <= (
+                                (
+                                    unit.ground_range
+                                    if not u.is_flying
+                                    else unit.air_range
+                                )
+                                + unit.radius
+                                + u.radius
+                            )
                         ]
                     )
                 ):
-                    attacking_maneuver.add(
-                        ShootTargetInRange(unit=unit, targets=danger_to_air)
-                    )
+                    e_target: Unit = cy_pick_enemy_target(danger_to_air)
+                    if target and cy_attack_ready(self.ai, unit, e_target):
+                        attacking_maneuver.add(AttackTarget(unit=unit, target=e_target))
                 # attack any units in range
                 elif in_attack_range_e := cy_in_attack_range(unit, only_enemy_units):
                     # `ShootTargetInRange` will check weapon is ready
@@ -139,6 +155,8 @@ class SquadCombat(BaseCombat):
                         attacking_maneuver.add(
                             PathUnitToTarget(unit=unit, grid=grid, target=target)
                         )
+                else:
+                    attacking_maneuver.add(KeepUnitSafe(unit=unit, grid=grid))
 
             else:
                 attacking_maneuver.add(

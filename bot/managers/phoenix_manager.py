@@ -1,7 +1,5 @@
 from typing import TYPE_CHECKING
 
-from cython_extensions import cy_closest_to
-
 from ares import ManagerMediator
 from ares.consts import (
     ALL_STRUCTURES,
@@ -23,6 +21,7 @@ from bot.combat.base_combat import BaseCombat
 from bot.combat.phoenix_harass import PhoenixHarass
 from bot.consts import COMMON_UNIT_IGNORE_TYPES, STEAL_FROM_ROLES
 from bot.managers.deimos_mediator import DeimosMediator
+from cython_extensions import cy_closest_to
 
 if TYPE_CHECKING:
     from ares import AresBot

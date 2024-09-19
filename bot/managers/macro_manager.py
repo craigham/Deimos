@@ -89,10 +89,14 @@ class MacroManager(Manager):
                     max_pending=1 if self.ai.supply_workers < 60 else 3,
                 )
             )
+            add_production_at_bank: tuple = (300, 300)
+            if self.deimos_mediator.get_enemy_rushed:
+                add_production_at_bank = (150, 0)
             macro_plan.add(
                 ProductionController(
                     self.deimos_mediator.get_army_comp,
                     base_location=self._main_building_location,
+                    add_production_at_bank=add_production_at_bank,
                 )
             )
 

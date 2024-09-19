@@ -136,7 +136,7 @@ Builds:
             - 15 chrono @ nexus
             - 16 gas
             - 15 worker_scout:
-                [ third, fourth, fifth, sixth, enemy_spawn ]
+                [ third, fourth, fifth, sixth ]
             - 19 core @ ramp
             - 19 pylon
             - 19 nexus

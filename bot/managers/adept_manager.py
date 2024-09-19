@@ -3,13 +3,13 @@ from typing import TYPE_CHECKING, Any, Optional
 import numpy as np
 from ares import ManagerMediator
 from ares.consts import (
+    ALL_STRUCTURES,
     TOWNHALL_TYPES,
     VICTORY_CLOSE_OR_BETTER,
     WORKER_TYPES,
     EngagementResult,
     UnitRole,
     UnitTreeQueryType,
-    ALL_STRUCTURES,
 )
 from ares.managers.manager import Manager
 from cython_extensions.units_utils import cy_closest_to
@@ -25,7 +25,7 @@ from bot.combat.adept_shade_harass import AdeptShadeHarass
 from bot.combat.base_combat import BaseCombat
 from bot.combat.map_control_adepts import MapControlAdepts
 from bot.combat.map_control_shades import MapControlShades
-from bot.consts import RequestType, COMMON_UNIT_IGNORE_TYPES
+from bot.consts import COMMON_UNIT_IGNORE_TYPES, RequestType
 from bot.managers.deimos_mediator import DeimosMediator
 from cython_extensions import cy_distance_to_squared
 
