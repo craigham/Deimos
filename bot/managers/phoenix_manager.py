@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 
+from cython_extensions import cy_closest_to
+
 from ares import ManagerMediator
 from ares.consts import (
     ALL_STRUCTURES,
@@ -58,6 +60,12 @@ class PhoenixManager(Manager):
         self._squad_id_to_engage_tracker: dict[str, bool] = dict()
 
     def _update_phoenix_harass_target(self, phoenixes: list[Unit]) -> None:
+        if mutas := self.manager_mediator.get_enemy_army_dict[UnitID.MUTALISK]:
+            self.phoenix_harass_target = cy_closest_to(
+                self.ai.start_location, mutas
+            ).position
+            return
+
         enemy_townhalls: Units = self.ai.enemy_structures(TOWNHALL_TYPES)
 
         best_result: EngagementResult = EngagementResult.LOSS_EMPHATIC

@@ -9,6 +9,7 @@ from ares.consts import (
     EngagementResult,
     UnitRole,
     UnitTreeQueryType,
+    ALL_STRUCTURES,
 )
 from ares.managers.manager import Manager
 from cython_extensions.units_utils import cy_closest_to
@@ -24,7 +25,7 @@ from bot.combat.adept_shade_harass import AdeptShadeHarass
 from bot.combat.base_combat import BaseCombat
 from bot.combat.map_control_adepts import MapControlAdepts
 from bot.combat.map_control_shades import MapControlShades
-from bot.consts import RequestType
+from bot.consts import RequestType, COMMON_UNIT_IGNORE_TYPES
 from bot.managers.deimos_mediator import DeimosMediator
 from cython_extensions import cy_distance_to_squared
 
@@ -440,36 +441,22 @@ class AdeptManager(Manager):
                 cancel_shade_dict[phase.tag] = False
                 continue
 
-            own_units: Units = self.manager_mediator.get_units_in_range(
-                start_points=[adept.position],
-                distances=[10.0],
-                query_tree=UnitTreeQueryType.AllOwn,
-            )[0]
-
-            own_units_near_shade: Units = self.manager_mediator.get_units_in_range(
-                start_points=[phase.position],
-                distances=[10.0],
-                query_tree=UnitTreeQueryType.AllOwn,
-            )[0]
-
-            # check current fight result, and potential fight result if shade finishes
-            adept_result: EngagementResult = self.manager_mediator.can_win_fight(
-                own_units=own_units,
-                enemy_units=units_near_adepts,
-                workers_do_no_damage=True,
-            )
-
-            potential_result: EngagementResult = self.manager_mediator.can_win_fight(
-                own_units=own_units_near_shade,
-                enemy_units=units_near_shades,
-                workers_do_no_damage=True,
-            )
-
-            # simple scenario, adepts will get a better result fighting where the shades are
-            # don't cancel shade
-            if potential_result.value >= adept_result.value:
+            units_near_adepts: list[Unit] = [
+                u
+                for u in units_near_adepts
+                if u.type_id not in COMMON_UNIT_IGNORE_TYPES
+                and u.type_id not in ALL_STRUCTURES
+                and u.type_id not in WORKER_TYPES
+            ]
+            units_near_shades: list[Unit] = [
+                u
+                for u in units_near_shades
+                if u.type_id not in COMMON_UNIT_IGNORE_TYPES
+                and u.type_id not in ALL_STRUCTURES
+                and u.type_id not in WORKER_TYPES
+            ]
+            if len(units_near_adepts) > len(units_near_shades):
                 cancel_shade_dict[phase.tag] = False
-            # adepts looking better here?
             else:
                 cancel_shade_dict[phase.tag] = True
 
