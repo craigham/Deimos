@@ -7,8 +7,8 @@ BuildChoices:
     test_123:
         BotName: Test
         Cycle:
-            # - PhoenixEconomic
-            - AdeptVoidray
+            - PhoenixEconomic
+            # - AdeptVoidray
             # - OneBaseTempests
 
     Protoss:
@@ -101,15 +101,17 @@ Builds:
         AutoSupplyAtSupply: 22
         OpeningBuildOrder:
             - 13 pylon @ ramp
-            - 14 gateway @ ramp
+            - 14 forge @ ramp
             - 15 chrono @ nexus
-            - 16 forge @ ramp
-            - 16 gas *2
-            - 16 core
-            - 16 pylon @ ramp
+            - 16 gateway @ ramp
             - 16 photoncannon @ ramp
-            - 16 stargate
+            - 16 gas *2
             - 16 pylon
+            - 16 core
+            - 16 photoncannon @ ramp
+            - 16 pylon
+            - 16 stargate
+            - 16 shieldbattery @ ramp
             - 16 photoncannon @ ramp *2
             - 16 fleetbeacon
             - 16 photoncannon

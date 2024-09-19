@@ -1,28 +1,34 @@
 from itertools import cycle
 from typing import TYPE_CHECKING, Optional
 
+from sc2.unit import Unit
+
 from ares import ManagerMediator
 from ares.cache import property_cache_once_per_frame
 from ares.consts import (
     ALL_STRUCTURES,
-    LOSS_DECISIVE_OR_WORSE,
-    VICTORY_CLOSE_OR_BETTER,
+    LOSS_OVERWHELMING_OR_WORSE,
+    VICTORY_MARGINAL_OR_BETTER,
     WORKER_TYPES,
+    TOWNHALL_TYPES,
     EngagementResult,
     UnitRole,
     UnitTreeQueryType,
 )
 from ares.managers.manager import Manager
 from ares.managers.squad_manager import UnitSquad
-from cython_extensions.units_utils import cy_closest_to, cy_find_units_center_mass
+from cython_extensions.units_utils import (
+    cy_closest_to,
+    cy_find_units_center_mass,
+    cy_sorted_by_distance_to,
+)
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
 from sc2.units import Units
 
 from bot.combat.base_combat import BaseCombat
-from bot.combat.flying_squad_combat import FlyingSquadCombat
-from bot.combat.ground_squad_combat import GroundSquadCombat
-from bot.consts import COMMON_UNIT_IGNORE_TYPES, STEAL_FROM_ROLES
+from bot.combat.squad_combat import SquadCombat
+from bot.consts import COMMON_UNIT_IGNORE_TYPES, STEAL_FROM_ROLES, STATIC_DEFENCE
 from bot.managers.deimos_mediator import DeimosMediator
 from cython_extensions import cy_distance_to_squared
 
@@ -39,8 +45,8 @@ class CombatManager(Manager):
         UnitID.CREEPTUMORBURROWED,
         UnitID.NYDUSCANAL,
     }
-    SQUAD_ENGAGE_THRESHOLD: set[EngagementResult] = VICTORY_CLOSE_OR_BETTER
-    SQUAD_DISENGAGE_THRESHOLD: set[EngagementResult] = LOSS_DECISIVE_OR_WORSE
+    SQUAD_ENGAGE_THRESHOLD: set[EngagementResult] = VICTORY_MARGINAL_OR_BETTER
+    SQUAD_DISENGAGE_THRESHOLD: set[EngagementResult] = LOSS_OVERWHELMING_OR_WORSE
     defensive_voidrays: BaseCombat
 
     def __init__(
@@ -68,9 +74,9 @@ class CombatManager(Manager):
         self.current_base_target: Point2 = self.ai.enemy_start_locations[0]
         self.aggressive: bool = False
         self._squad_id_to_engage_tracker: dict[str, bool] = dict()
+        self._squad_to_target: dict[str, Point2] = dict()
 
-        self.ground_squad_combat: BaseCombat = GroundSquadCombat(ai, config, mediator)
-        self.flying_squad_combat: BaseCombat = FlyingSquadCombat(ai, config, mediator)
+        self.ground_squad_combat: BaseCombat = SquadCombat(ai, config, mediator)
 
     @property_cache_once_per_frame
     def attack_target(self) -> Point2:
@@ -221,31 +227,77 @@ class CombatManager(Manager):
                 query_tree=UnitTreeQueryType.AllEnemy,
             )[0].filter(lambda u: u.type_id not in COMMON_UNIT_IGNORE_TYPES)
 
-            self._track_squad_engagement(army, squad)
+            self._track_squad_engagement(army, squad, all_close_enemy)
             can_engage: bool = self._squad_id_to_engage_tracker[squad.squad_id]
 
-            ground, flying = self.ai.split_ground_fliers(
-                squad.squad_units, return_as_lists=True
+            self._manage_squad_target(squad, can_engage, all_close_enemy, move_to)
+
+            self.ground_squad_combat.execute(
+                squad.squad_units,
+                all_close_enemy=all_close_enemy,
+                can_engage=can_engage,
+                main_squad=squad.main_squad,
+                target=self._squad_to_target[squad.squad_id],
             )
 
-            if flying:
-                self.flying_squad_combat.execute(
-                    flying,
-                    all_close_enemy=all_close_enemy,
-                    can_engage=can_engage,
-                    main_squad=squad.main_squad,
-                    target=move_to,
-                )
-            if ground:
-                self.ground_squad_combat.execute(
-                    ground,
-                    all_close_enemy=all_close_enemy,
-                    can_engage=can_engage,
-                    main_squad=squad.main_squad,
-                    target=move_to,
-                )
+    def _manage_squad_target(
+        self,
+        squad: UnitSquad,
+        can_engage: bool,
+        all_close_enemy: Units,
+        default_move_to: Point2,
+    ) -> None:
+        squad_id: str = squad.squad_id
+        if squad_id not in self._squad_to_target:
+            self._squad_to_target[squad_id] = default_move_to
+            return
 
-    def _track_squad_engagement(self, attackers: Units, squad: UnitSquad) -> None:
+        # switch between default and a calculated target if possible
+        current_target: Point2 = self._squad_to_target[squad_id]
+        # we only change target if close enemy and we can't engage
+        if not can_engage and all_close_enemy and current_target == default_move_to:
+            enemy_townhalls: Units = self.ai.enemy_structures(TOWNHALL_TYPES)
+            furthest_townhall = None
+            furthest_dist: float = 0.0
+            for th in enemy_townhalls:
+                if (
+                    th.position
+                    in {
+                        self.ai.enemy_start_locations[0],
+                        self.manager_mediator.get_enemy_nat,
+                    }
+                    or cy_distance_to_squared(th.position, squad.squad_position) < 312.0
+                ):
+                    continue
+
+                dist = cy_distance_to_squared(th.position, squad.squad_position)
+                if dist > furthest_dist:
+                    furthest_dist = dist
+                    furthest_townhall = th.position
+
+            if furthest_townhall:
+                self._squad_to_target[squad_id] = furthest_townhall
+                return
+
+        # change if close to alternative target and can't engage
+        # or nothing at the alternative place
+        if (
+            current_target != default_move_to
+            and not can_engage
+            and cy_distance_to_squared(current_target, squad.squad_position) < 144
+        ) or len(
+            [
+                u
+                for u in self.ai.all_enemy_units
+                if cy_distance_to_squared(u.position, current_target) < 256
+            ]
+        ) == 0:
+            self._squad_to_target[squad_id] = default_move_to
+            return
+
+    def _track_squad_engagement(
+        self, attackers: Units, squad: UnitSquad, close_enemy: Units
+    ) -> None:
         """
         Not only do we check units in this squad, we should check all
         our units with UnitRole.Attacking, since another squad might be
@@ -260,11 +312,9 @@ class CombatManager(Manager):
         -------
 
         """
-        close_enemy: Units = self.manager_mediator.get_units_in_range(
-            start_points=[squad.squad_position],
-            distances=25.5,
-            query_tree=UnitTreeQueryType.AllEnemy,
-        )[0]
+        close_enemy: Units = close_enemy.filter(
+            lambda u: u.type_id not in ALL_STRUCTURES or u.type_id in STATIC_DEFENCE
+        )
 
         squad_id: str = squad.squad_id
         if squad_id not in self._squad_id_to_engage_tracker:
