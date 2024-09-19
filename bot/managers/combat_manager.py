@@ -229,6 +229,8 @@ class CombatManager(Manager):
 
             self._track_squad_engagement(army, squad, all_close_enemy)
             can_engage: bool = self._squad_id_to_engage_tracker[squad.squad_id]
+            if self.deimos_mediator.get_enemy_rushed and self.ai.time < 330.0:
+                can_engage = True
 
             self._manage_squad_target(squad, can_engage, all_close_enemy, move_to)
 

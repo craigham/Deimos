@@ -73,6 +73,14 @@ class MacroManager(Manager):
             macro_plan: MacroPlan = MacroPlan()
             macro_plan.add(AutoSupply(self._main_building_location))
             macro_plan.add(BuildWorkers(max_probes))
+            macro_plan.add(
+                SpawnController(
+                    self.deimos_mediator.get_army_comp,
+                    spawn_target=self.manager_mediator.get_own_nat,
+                    freeflow_mode=self.ai.minerals > 500 and self.ai.vespene > 500,
+                    ignore_proportions_below_unit_count=4,
+                )
+            )
             if self.can_expand:
                 macro_plan.add(ExpansionController(to_count=100, max_pending=2))
             macro_plan.add(
@@ -85,14 +93,6 @@ class MacroManager(Manager):
                 ProductionController(
                     self.deimos_mediator.get_army_comp,
                     base_location=self._main_building_location,
-                )
-            )
-            macro_plan.add(
-                SpawnController(
-                    self.deimos_mediator.get_army_comp,
-                    spawn_target=self.manager_mediator.get_own_nat,
-                    freeflow_mode=self.ai.minerals > 500 and self.ai.vespene > 500,
-                    ignore_proportions_below_unit_count=4,
                 )
             )
 

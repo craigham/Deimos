@@ -119,20 +119,25 @@ class SquadCombat(BaseCombat):
                         ShootTargetInRange(unit=unit, targets=in_attack_range)
                     )
 
-                if can_engage and unit.shield_health_percentage > 0.2:
-                    enemy_target: Unit = cy_closest_to(unit.position, valid_targets)
-                    if unit.ground_range < 3.0:
-                        attacking_maneuver.add(AMove(unit=unit, target=enemy_target))
+                if len(valid_targets) > 2:
+                    if can_engage and unit.shield_health_percentage > 0.2:
+                        enemy_target: Unit = cy_closest_to(unit.position, valid_targets)
+                        if unit.ground_range < 3.0:
+                            attacking_maneuver.add(
+                                AMove(unit=unit, target=enemy_target)
+                            )
+                        else:
+                            attacking_maneuver.add(
+                                StutterUnitBack(
+                                    unit=unit, target=enemy_target, grid=grid
+                                )
+                            )
+                    # can't engage, stay safe but also attempt to get to target
                     else:
+                        attacking_maneuver.add(KeepUnitSafe(unit=unit, grid=grid))
                         attacking_maneuver.add(
-                            StutterUnitBack(unit=unit, target=enemy_target, grid=grid)
+                            PathUnitToTarget(unit=unit, grid=grid, target=target)
                         )
-                # can't engage, stay safe but also attempt to get to target
-                else:
-                    attacking_maneuver.add(KeepUnitSafe(unit=unit, grid=grid))
-                    attacking_maneuver.add(
-                        PathUnitToTarget(unit=unit, grid=grid, target=target)
-                    )
 
             else:
                 attacking_maneuver.add(

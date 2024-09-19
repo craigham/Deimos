@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING, Any
 
+from sc2.data import Race
+
 from ares import ManagerMediator
 from ares.managers.manager import Manager
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
@@ -135,7 +137,7 @@ class ArmyCompManager(Manager):
             self._army_comp = self.stalker_comp
         elif len(self.manager_mediator.get_enemy_army_dict[UnitID.MUTALISK]) > 0:
             self._army_comp = self.stalker_immortal_phoenix_comp
-        elif self.ai.supply_used > 114:
+        elif self.ai.supply_used > 120 and self.ai.enemy_race != Race.Zerg:
             self._army_comp = self.stalker_tempests_comp
         elif self.manager_mediator.get_enemy_ling_rushed and self.ai.supply_army < 20:
             self._army_comp = self.adept_only_comp

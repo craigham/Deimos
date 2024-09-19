@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Any
 from ares import ManagerMediator
 from ares.cache import property_cache_once_per_frame
 from ares.managers.manager import Manager
+from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.unit import Unit
 
 from bot.consts import RequestType
@@ -83,6 +84,10 @@ class ReconManager(Manager):
             or self.manager_mediator.get_enemy_four_gate
             or self.manager_mediator.get_enemy_roach_rushed
             or self.manager_mediator.get_enemy_worker_rushed
+            or (
+                len(self.manager_mediator.get_enemy_army_dict[UnitID.MARINE]) > 6
+                and self.ai.time < 300.0
+            )
         )
 
     @property_cache_once_per_frame
