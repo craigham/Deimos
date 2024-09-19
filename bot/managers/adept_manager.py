@@ -123,12 +123,8 @@ class AdeptManager(Manager):
         ]
         for shade in all_shades:
             role: UnitRole = UnitRole.CONTROL_GROUP_TWO
-            if (
-                not self._assigned_map_control_adept
-                and not self.deimos_mediator.get_enemy_rushed
-            ):
+            if not self.deimos_mediator.get_enemy_rushed:
                 role = UnitRole.MAP_CONTROL
-                self._assigned_map_control_adept = True
 
             self.manager_mediator.assign_role(tag=shade.tag, role=role)
 
@@ -195,7 +191,8 @@ class AdeptManager(Manager):
             role=UnitRole.MAP_CONTROL, unit_type=UnitID.ADEPT
         )
 
-        if not map_control_adepts and adepts:
+        if not map_control_adepts and adepts and not self._assigned_map_control_adept:
+            self._assigned_map_control_adept = True
             adept: Unit = adepts[0]
             self.manager_mediator.assign_role(tag=adept.tag, role=UnitRole.MAP_CONTROL)
 
