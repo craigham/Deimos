@@ -142,7 +142,12 @@ class SquadCombat(BaseCombat):
                         ShootTargetInRange(unit=unit, targets=in_attack_range)
                     )
 
-                if len(valid_targets) > 2 or always_fight_near_enemy:
+                ground: list[Unit] = [
+                    u
+                    for u in valid_targets
+                    if not u.is_flying and u.type_id not in ALL_STRUCTURES
+                ]
+                if len(ground) > 0 or always_fight_near_enemy:
                     if can_engage and unit.shield_health_percentage > 0.2:
                         enemy_target: Unit = cy_closest_to(unit.position, valid_targets)
                         if unit.ground_range < 3.0:
@@ -163,6 +168,12 @@ class SquadCombat(BaseCombat):
                         )
                 else:
                     attacking_maneuver.add(KeepUnitSafe(unit=unit, grid=grid))
+                    attacking_maneuver.add(
+                        PathUnitToTarget(
+                            unit=unit, grid=grid, target=target, success_at_distance=14
+                        )
+                    )
+                    attacking_maneuver.add(AMove(unit, target))
 
             else:
                 attacking_maneuver.add(
