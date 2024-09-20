@@ -9,6 +9,7 @@ from ares.behaviors.combat.individual import (
     ShootTargetInRange,
     StutterUnitBack,
     UseAbility,
+    PathUnitToTarget,
 )
 from ares.consts import VICTORY_DECISIVE_OR_BETTER, EngagementResult
 from sc2.ids.ability_id import AbilityId
@@ -125,12 +126,12 @@ class AdeptHarass(BaseCombat):
                             )
                         )
                     else:
-                        adept_harass.add(UseAbility(AbilityId.MOVE_MOVE, unit, target))
+                        adept_harass.add(PathUnitToTarget(unit, grid, target))
                 else:
                     adept_harass.add(KeepUnitSafe(unit, grid))
             # moving on map
             else:
-                adept_harass.add(UseAbility(AbilityId.MOVE_MOVE, unit, target))
+                adept_harass.add(PathUnitToTarget(unit, grid, target))
 
             self.ai.register_behavior(adept_harass)
 

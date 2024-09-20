@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Union
 
 import numpy as np
+from src.ares.consts import UnitTreeQueryType, WORKER_TYPES
+
 from ares import ManagerMediator
 from ares.managers.squad_manager import UnitSquad
 from sc2.ids.ability_id import AbilityId
@@ -10,7 +12,9 @@ from sc2.unit import Unit
 from sc2.units import Units
 
 from bot.combat.base_combat import BaseCombat
-from cython_extensions import cy_attack_ready
+from cython_extensions import cy_attack_ready, cy_center
+
+from bot.consts import COMMON_UNIT_IGNORE_TYPES
 
 if TYPE_CHECKING:
     from ares import AresBot
@@ -56,9 +60,21 @@ class AdeptShadeHarass(BaseCombat):
         cancel_shades_dict: dict[int, bool] = kwargs["cancel_shades_dict"]
         grid: np.ndarray = kwargs["grid"]
         target_dict: dict[int, Point2] = kwargs["target_dict"]
+        near_enemy: dict[int, Units] = self.mediator.get_units_in_range(
+            start_points=units,
+            distances=15,
+            query_tree=UnitTreeQueryType.EnemyGround,
+            return_as_dict=True,
+        )
 
         for unit in units:
             unit_tag: int = unit.tag
+            all_close: list[Unit] = [
+                u
+                for u in near_enemy[unit_tag]
+                if not u.is_memory and u.type_id not in COMMON_UNIT_IGNORE_TYPES
+            ]
+            # workers: list[Unit] = [u for u in all_close if u.type_id in WORKER_TYPES]
             target = self.ai.enemy_start_locations[0]
             if unit_tag in target_dict:
                 target = target_dict[unit_tag]

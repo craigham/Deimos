@@ -97,7 +97,13 @@ class SquadCombat(BaseCombat):
             else:
                 valid_targets = [u for u in valid_targets if not u.is_flying]
 
-            if valid_targets:
+            if unit.type_id == UnitID.OBSERVER:
+                attacking_maneuver.add(KeepUnitSafe(unit=unit, grid=grid))
+                attacking_maneuver.add(
+                    PathUnitToTarget(unit=unit, grid=grid, target=target)
+                )
+
+            elif valid_targets:
                 # if flying target any dangers to air first
                 if (
                     unit.is_flying

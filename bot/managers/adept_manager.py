@@ -124,8 +124,6 @@ class AdeptManager(Manager):
         ]
         for shade in all_shades:
             role: UnitRole = UnitRole.CONTROL_GROUP_TWO
-            if not self.deimos_mediator.get_enemy_rushed:
-                role = UnitRole.MAP_CONTROL
 
             self.manager_mediator.assign_role(tag=shade.tag, role=role)
 
@@ -155,7 +153,7 @@ class AdeptManager(Manager):
 
         for unit in defending_adepts:
             if self.manager_mediator.get_enemy_ling_rushed:
-                role = UnitRole.DEFENDING
+                role = UnitRole.ATTACKING
             else:
                 role = UnitRole.HARASSING_ADEPT
 
@@ -376,6 +374,7 @@ class AdeptManager(Manager):
 
     def _check_if_should_cancel_shades(self) -> dict:
         cancel_shade_dict: dict[int, bool] = dict()
+        grid: np.ndarray = self.manager_mediator.get_ground_grid
         for adept_tag, shade_tag in self._adept_to_phase.items():
             adept: Unit = self.ai.unit_tag_dict.get(adept_tag)
             phase: Unit = self.ai.unit_tag_dict.get(shade_tag)
@@ -389,13 +388,13 @@ class AdeptManager(Manager):
             # ground units near adepts
             units_near_adepts: Units = self.manager_mediator.get_units_in_range(
                 start_points=[adept.position],
-                distances=[10.0],
+                distances=[11.0],
                 query_tree=UnitTreeQueryType.EnemyGround,
             )[0]
 
             units_near_shades: Units = self.manager_mediator.get_units_in_range(
                 start_points=[phase.position],
-                distances=[10.0],
+                distances=[11.0],
                 query_tree=UnitTreeQueryType.EnemyGround,
             )[0]
 
@@ -417,47 +416,54 @@ class AdeptManager(Manager):
                 ]
             )
 
-            # adepts are already in a great spot! cancel shade
-            if (
-                num_workers_near_adepts >= 4
-                and num_workers_near_adepts > num_workers_near_shades
-            ):
-                cancel_shade_dict[phase.tag] = True
-                continue
-
-            # idea here is, if there is nothing threatening ground, then finish shade
-            # or if there happens to be enemy workers near shades
-            if (
-                len(
-                    [
-                        u
-                        for u in units_near_shades
-                        if u.can_attack and u.type_id not in WORKER_TYPES
-                    ]
-                )
-                == 0
-                or num_workers_near_shades >= 4
-            ):
+            if num_workers_near_shades >= num_workers_near_adepts:
                 cancel_shade_dict[phase.tag] = False
                 continue
 
-            units_near_adepts: list[Unit] = [
-                u
-                for u in units_near_adepts
-                if u.type_id not in COMMON_UNIT_IGNORE_TYPES
-                and u.type_id not in ALL_STRUCTURES
-                and u.type_id not in WORKER_TYPES
-            ]
-            units_near_shades: list[Unit] = [
-                u
-                for u in units_near_shades
-                if u.type_id not in COMMON_UNIT_IGNORE_TYPES
-                and u.type_id not in ALL_STRUCTURES
-                and u.type_id not in WORKER_TYPES
-            ]
-            if len(units_near_adepts) > len(units_near_shades):
+            position = adept.position.rounded
+            adept_weight: float = grid[position.x, position.y]
+
+            position = phase.position.rounded
+            shade_weight: float = grid[position.x, position.y]
+
+            if adept_weight > shade_weight:
                 cancel_shade_dict[phase.tag] = False
             else:
                 cancel_shade_dict[phase.tag] = True
+
+            # idea here is, if there is nothing threatening ground, then finish shade
+            # or if there happens to be enemy workers near shades
+            # if (
+            #     len(
+            #         [
+            #             u
+            #             for u in units_near_shades
+            #             if u.can_attack and u.type_id not in WORKER_TYPES
+            #         ]
+            #     )
+            #     == 0
+            #     or num_workers_near_shades >= 4
+            # ):
+            #     cancel_shade_dict[phase.tag] = False
+            #     continue
+            #
+            # units_near_adepts: list[Unit] = [
+            #     u
+            #     for u in units_near_adepts
+            #     if u.type_id not in COMMON_UNIT_IGNORE_TYPES
+            #     and u.type_id not in ALL_STRUCTURES
+            #     and u.type_id not in WORKER_TYPES
+            # ]
+            # units_near_shades: list[Unit] = [
+            #     u
+            #     for u in units_near_shades
+            #     if u.type_id not in COMMON_UNIT_IGNORE_TYPES
+            #     and u.type_id not in ALL_STRUCTURES
+            #     and u.type_id not in WORKER_TYPES
+            # ]
+            # if len(units_near_adepts) > len(units_near_shades):
+            #     cancel_shade_dict[phase.tag] = False
+            # else:
+            #     cancel_shade_dict[phase.tag] = True
 
         return cancel_shade_dict

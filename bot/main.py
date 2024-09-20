@@ -1,5 +1,7 @@
 from typing import Optional
 
+from sc2.data import Race
+
 from ares import AresBot, Hub, ManagerMediator, UnitRole
 from ares.managers.manager import Manager
 from loguru import logger
@@ -82,6 +84,9 @@ class MyBot(AresBot):
                 if self.mediator.get_enemy_roach_rushed:
                     for th in self.townhalls.not_ready:
                         self.mediator.cancel_structure(structure=th)
+                if self.enemy_race == Race.Terran:
+                    for sg in self.enemy_structures(UnitID.STARGATE):
+                        self.mediator.cancel_structure(structure=sg)
 
                 if not self._deimos_mediator.get_enemy_proxies:
                     worker_scouts: Units = self.mediator.get_units_from_role(

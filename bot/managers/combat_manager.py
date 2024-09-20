@@ -199,7 +199,10 @@ class CombatManager(Manager):
             )
 
     def _check_aggressive_status(self) -> None:
-        if self.ai.enemy_race == Race.Zerg:
+        if (
+            self.ai.enemy_race == Race.Zerg
+            and len(self.manager_mediator.get_enemy_army_dict[UnitID.MUTALISK]) == 0
+        ):
             self.aggressive = True
 
         elif self.aggressive:
