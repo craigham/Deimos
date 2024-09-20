@@ -70,15 +70,15 @@ class MacroManager(Manager):
 
         self._do_mining()
         if self.ai.build_order_runner.build_completed:
-            max_probes: int = min(66, 22 * len(self.ai.townhalls))
-            if self.deimos_mediator.get_enemy_rushed and self.ai.supply_army < 22:
-                max_probes = 25
+            max_probes: int = min(74, 22 * len(self.ai.townhalls))
             if (
                 not self.manager_mediator.get_enemy_expanded
-                and self.ai.enemy_race == Race.Protoss
                 and self.ai.supply_army < 22
             ):
-                max_probes = 29
+                if self.deimos_mediator.get_enemy_rushed:
+                    max_probes = 25
+                elif self.ai.enemy_race == Race.Protoss:
+                    max_probes = 29
 
             macro_plan: MacroPlan = MacroPlan()
             macro_plan.add(AutoSupply(self._main_building_location))
