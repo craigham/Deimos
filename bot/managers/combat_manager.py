@@ -342,7 +342,8 @@ class CombatManager(Manager):
 
         """
         close_enemy: Units = close_enemy.filter(
-            lambda u: u.type_id not in ALL_STRUCTURES or u.type_id in STATIC_DEFENCE
+            lambda u: (u.type_id not in ALL_STRUCTURES or u.type_id in STATIC_DEFENCE)
+            and u.type_id not in COMMON_UNIT_IGNORE_TYPES
         )
 
         squad_id: str = squad.squad_id

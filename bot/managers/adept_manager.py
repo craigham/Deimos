@@ -246,7 +246,7 @@ class AdeptManager(Manager):
         # on this opening we hold back till adept timing
         if (
             self.ai.build_order_runner.chosen_opening == "AdeptVoidray"
-            and self.ai.time < 280.0
+            and self.ai.time < 245.0
         ):
             for adept in adepts:
                 adept_tag: int = adept.tag
