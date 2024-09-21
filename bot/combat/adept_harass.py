@@ -116,7 +116,7 @@ class AdeptHarass(BaseCombat):
                         adept_harass.add(
                             ShootTargetInRange(unit=unit, targets=in_attack_range)
                         )
-                if can_take_fight:
+                if can_take_fight and unit.shield_health_percentage > 0.2:
                     if only_enemy_units:
                         adept_harass.add(
                             StutterUnitBack(

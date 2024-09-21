@@ -81,7 +81,9 @@ class SquadCombat(BaseCombat):
             u
             for u in all_close_enemy
             if not (u.is_cloaked or u.is_cloaked and u.is_revealed)
-            and (not u.is_memory and u.type_id not in COMMON_UNIT_IGNORE_TYPES)
+            and not (u.is_burrowed or u.is_burrowed and u.is_revealed)
+            and not u.is_memory
+            and u.type_id not in COMMON_UNIT_IGNORE_TYPES
         ]
 
         only_enemy_units: list[Unit] = [

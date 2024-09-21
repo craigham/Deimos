@@ -137,7 +137,10 @@ class CombatManager(Manager):
             [
                 u
                 for u in self.manager_mediator.get_enemy_ground
-                if u.type_id not in WORKER_TYPES and u.type_id not in ALL_STRUCTURES
+                if u.type_id not in WORKER_TYPES
+                and u.type_id not in ALL_STRUCTURES
+                and not u.is_burrowed
+                and not u.is_cloaked
             ],
             10,
         )

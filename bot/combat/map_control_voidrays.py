@@ -96,7 +96,7 @@ class MapControlVoidrays(BaseCombat):
                     grid=avoidance_grid, position=unit.position
                 ):
                     target: Unit = cy_pick_enemy_target(close_enemy)
-                    maneuver.add(UseAbility(AbilityId.MOVE_MOVE, unit, target))
+                    maneuver.add(UseAbility(AbilityId.MOVE_MOVE, unit, target.position))
                 elif flying_in_attack_range := [
                     u
                     for u in flying
@@ -112,7 +112,7 @@ class MapControlVoidrays(BaseCombat):
                     < 36.0 + unit.radius + u.radius
                 ]:
                     armoured: list[Unit] = [u for u in in_attack_range if u.is_armored]
-                    if armoured and unit.has_buff(BuffId.VOIDRAYSWARMDAMAGEBOOST):
+                    if armoured:
                         maneuver.add(
                             UseAbility(
                                 AbilityId.EFFECT_VOIDRAYPRISMATICALIGNMENT, unit, None

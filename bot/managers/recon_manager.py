@@ -37,11 +37,13 @@ class ReconManager(Manager):
         super().__init__(ai, config, mediator)
 
         self.deimos_requests_dict = {
+            RequestType.GET_ENEMY_EARLY_ROACH_WARREN: lambda kwargs: self._enemy_early_roach_warren,
             RequestType.GET_ENEMY_PROXIES: lambda kwargs: self.enemy_proxies,
             RequestType.GET_ENEMY_RUSHED: lambda kwargs: self._enemy_rushed,
         }
 
         self._enemy_rushed: bool = False
+        self._enemy_early_roach_warren: bool = False
 
     def manager_request(
         self,
@@ -88,6 +90,7 @@ class ReconManager(Manager):
                 len(self.manager_mediator.get_enemy_army_dict[UnitID.MARINE]) > 6
                 and self.ai.time < 300.0
             )
+            or self._enemy_early_roach_warren
         )
 
     @property_cache_once_per_frame
@@ -102,3 +105,7 @@ class ReconManager(Manager):
     async def update(self, iteration: int) -> None:
         if not self._enemy_rushed:
             self._enemy_rushed = self.did_enemy_rush
+
+        if not self._enemy_early_roach_warren and self.ai.time < 110.0:
+            if self.ai.enemy_structures(UnitID.ROACHWARREN):
+                self._enemy_early_roach_warren = True

@@ -107,6 +107,7 @@ class MacroManager(Manager):
                     self.deimos_mediator.get_army_comp,
                     base_location=self._main_building_location,
                     add_production_at_bank=add_production_at_bank,
+                    alpha=0.7,
                 )
             )
 
