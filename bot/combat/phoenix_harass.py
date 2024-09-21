@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import numpy as np
+from sc2.data import Race
+
 from ares import ManagerMediator
 from ares.behaviors.combat import CombatManeuver
 from ares.behaviors.combat.individual import (
@@ -185,6 +187,18 @@ class PhoenixHarass(BaseCombat):
                     maneuver.add(KeepUnitSafe(unit, air_grid))
                     maneuver.add(PathUnitToTarget(unit, air_grid, move_to))
             else:
+                if self.ai.enemy_race == Race.Terran and (
+                    flying_structures := [
+                        s for s in self.ai.enemy_structures if s.is_flying
+                    ]
+                ):
+                    maneuver.add(KeepUnitSafe(unit, air_grid))
+                    maneuver.add(
+                        AMove(
+                            unit,
+                            cy_closest_to(unit.position, flying_structures).position,
+                        )
+                    )
                 maneuver.add(PathUnitToTarget(unit, air_grid, move_to))
 
             self.ai.register_behavior(maneuver)

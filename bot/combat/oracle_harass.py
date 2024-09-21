@@ -48,7 +48,7 @@ class OracleHarass(BaseCombat):
     ai: "AresBot"
     config: dict
     mediator: ManagerMediator
-    min_supply_light_units: float = 4.0
+    min_supply_light_units: float = 5.0
     retreat_at_danger_level: float = 40.0
     retreat_at_shield_perc: float = 0.1
     turn_pulsar_beam_on_at_energy: float = 40.0

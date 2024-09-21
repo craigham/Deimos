@@ -284,6 +284,10 @@ class CombatManager(Manager):
             self._squad_to_target[squad_id] = default_move_to
             return
 
+        if not self.aggressive:
+            self._squad_to_target[squad_id] = self.rally_point
+            return
+
         # switch between default and a calculated target if possible
         current_target: Point2 = self._squad_to_target[squad_id]
         # we only change target if close enemy and we can't engage

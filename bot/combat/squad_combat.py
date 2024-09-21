@@ -181,8 +181,11 @@ class SquadCombat(BaseCombat):
 
             else:
                 attacking_maneuver.add(
-                    PathUnitToTarget(unit=unit, grid=grid, target=target)
+                    PathUnitToTarget(
+                        unit=unit, grid=grid, target=target, success_at_distance=6.5
+                    )
                 )
-                attacking_maneuver.add(AMove(unit=unit, target=target))
+                if not unit.orders:
+                    attacking_maneuver.add(AMove(unit=unit, target=target))
 
             self.ai.register_behavior(attacking_maneuver)

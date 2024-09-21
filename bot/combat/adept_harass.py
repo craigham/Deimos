@@ -131,7 +131,9 @@ class AdeptHarass(BaseCombat):
                     adept_harass.add(KeepUnitSafe(unit, grid))
             # moving on map
             else:
-                adept_harass.add(PathUnitToTarget(unit, grid, target))
+                adept_harass.add(
+                    PathUnitToTarget(unit, grid, target, sense_danger=False)
+                )
 
             self.ai.register_behavior(adept_harass)
 

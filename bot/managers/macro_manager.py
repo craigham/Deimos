@@ -46,6 +46,7 @@ class MacroManager(Manager):
         super().__init__(ai, config, mediator)
 
         self._main_building_location: Point2 = self.ai.start_location
+        self._workers_per_gas: int = 3
 
     @property
     def can_expand(self) -> bool:
@@ -73,7 +74,7 @@ class MacroManager(Manager):
             max_probes: int = min(74, 22 * len(self.ai.townhalls))
             if (
                 not self.manager_mediator.get_enemy_expanded
-                and self.ai.supply_army < 22
+                and self.ai.supply_army < 28
             ):
                 if self.deimos_mediator.get_enemy_rushed:
                     max_probes = 25
@@ -114,17 +115,26 @@ class MacroManager(Manager):
             self.ai.register_behavior(macro_plan)
 
     def _do_mining(self):
-        num_workers_per_gas: int = 3
         gatherers: Units = self.manager_mediator.get_units_from_role(
             role=UnitRole.GATHERING
         )
         if (
-            self.manager_mediator.get_enemy_worker_rushed
-            and len(gatherers) < 21
-            and self.ai.time < 210.0
-        ) or len(gatherers) < 12:
-            num_workers_per_gas: int = 0
-        self.ai.register_behavior(Mining(workers_per_gas=num_workers_per_gas))
+            (
+                self.manager_mediator.get_enemy_worker_rushed
+                and len(gatherers) < 21
+                and self.ai.time < 210.0
+            )
+            or len(gatherers) < 12
+            or (
+                self.ai.minerals < 100
+                and self.ai.vespene > 300
+                and self.ai.supply_used < 64
+            )
+        ):
+            self._workers_per_gas = 0
+        elif self.ai.vespene < 100:
+            self._workers_per_gas = 3
+        self.ai.register_behavior(Mining(workers_per_gas=self._workers_per_gas))
 
     def _check_building_location(self):
         if self.ai.time > 540.0 and self.ai.ready_townhalls:
