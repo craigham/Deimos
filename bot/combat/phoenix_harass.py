@@ -99,6 +99,8 @@ class PhoenixHarass(BaseCombat):
                     UnitID.SPORECRAWLER,
                 }
             )
+            move_to: Point2 = target if main_squad else pos_of_main_squad
+
             maneuver: CombatManeuver = CombatManeuver()
 
             # keep safe from dangerous effects (storms, biles etc)
@@ -130,6 +132,7 @@ class PhoenixHarass(BaseCombat):
                         UnitID.ZERGLING,
                         UnitID.MULE,
                     }
+                    and u.type_id not in ALL_STRUCTURES
                 ]
                 maneuver.add(ShootTargetInRange(unit, air))
                 if can_engage:
@@ -180,8 +183,8 @@ class PhoenixHarass(BaseCombat):
                             )
                         )
                     maneuver.add(KeepUnitSafe(unit, air_grid))
+                    maneuver.add(PathUnitToTarget(unit, air_grid, move_to))
             else:
-                move_to: Point2 = target if main_squad else pos_of_main_squad
                 maneuver.add(PathUnitToTarget(unit, air_grid, move_to))
 
             self.ai.register_behavior(maneuver)

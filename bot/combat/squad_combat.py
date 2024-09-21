@@ -96,6 +96,8 @@ class SquadCombat(BaseCombat):
 
             if unit.can_attack_both:
                 valid_targets = valid_targets
+            elif unit.can_attack_air:
+                valid_targets = [u for u in valid_targets if u.is_flying]
             else:
                 valid_targets = [u for u in valid_targets if not u.is_flying]
 
