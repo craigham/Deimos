@@ -18,7 +18,11 @@ from ares.consts import (
 )
 from ares.managers.manager import Manager
 from ares.managers.squad_manager import UnitSquad
-from cython_extensions.units_utils import cy_closest_to, cy_find_units_center_mass
+from cython_extensions.units_utils import (
+    cy_closest_to,
+    cy_find_units_center_mass,
+    cy_center,
+)
 from loguru import logger
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
@@ -232,6 +236,15 @@ class CombatManager(Manager):
         main_target: Point2 = (
             self.attack_target if self.aggressive else self.rally_point
         )
+        if not self.aggressive:
+            if (
+                ground_threats := self.manager_mediator.get_main_ground_threats_near_townhall
+            ):
+                main_target = Point2(cy_center(ground_threats))
+            elif (
+                air_threats := self.manager_mediator.get_main_ground_threats_near_townhall
+            ):
+                main_target = Point2(cy_center(air_threats))
 
         for squad in squads:
             move_to: Point2 = (
@@ -239,15 +252,6 @@ class CombatManager(Manager):
                 if squad.main_squad or not self.aggressive
                 else pos_of_main_squad
             )
-            if not self.aggressive:
-                if (
-                    ground_threats := self.manager_mediator.get_main_ground_threats_near_townhall
-                ):
-                    move_to = ground_threats.center
-                elif (
-                    air_threats := self.manager_mediator.get_main_air_threats_near_townhall
-                ):
-                    move_to = air_threats.center
             all_close_enemy: Units = self.manager_mediator.get_units_in_range(
                 start_points=[squad.squad_position],
                 distances=18.5,

@@ -137,7 +137,10 @@ class AdeptManager(Manager):
 
         self._link_adept_to_shade(all_adepts, all_shades)
         cancel_shades_dict: dict = self._check_if_should_cancel_shades()
-        if self.ai.enemy_race == Race.Zerg:
+        if (
+            self.ai.enemy_race == Race.Zerg
+            and not self.deimos_mediator.get_enemy_early_double_gas
+        ):
             self._manage_map_control_adepts()
         self._manage_adept_harrass(cancel_shades_dict, grid)
 
@@ -244,24 +247,25 @@ class AdeptManager(Manager):
 
         """
         # on this opening we hold back till adept timing
-        if (
-            self.ai.build_order_runner.chosen_opening == "AdeptVoidray"
-            and self.ai.time < 270.0
-        ):
-            for adept in adepts:
-                adept_tag: int = adept.tag
-                self._adept_targets[adept_tag] = self.ai.main_base_ramp.top_center
-                if adept_tag in self._adept_to_phase:
-                    if shade := self.ai.unit_tag_dict.get(
-                        self._adept_to_phase[adept_tag]
-                    ):
-                        self._shade_targets[
-                            shade.tag
-                        ] = self.ai.main_base_ramp.top_center.towards(
-                            self.ai.start_location, 6.0
-                        )
+        if self.ai.build_order_runner.chosen_opening == "AdeptVoidray":
+            time: float = (
+                270.0 if not self.deimos_mediator.get_enemy_early_double_gas else 90.0
+            )
+            if self.ai.time < time:
+                for adept in adepts:
+                    adept_tag: int = adept.tag
+                    self._adept_targets[adept_tag] = self.ai.main_base_ramp.top_center
+                    if adept_tag in self._adept_to_phase:
+                        if shade := self.ai.unit_tag_dict.get(
+                            self._adept_to_phase[adept_tag]
+                        ):
+                            self._shade_targets[
+                                shade.tag
+                            ] = self.ai.main_base_ramp.top_center.towards(
+                                self.ai.start_location, 6.0
+                            )
 
-            return
+                return
 
         map_data: MapData = self.manager_mediator.get_map_data_object
         # find all potential places we can harass

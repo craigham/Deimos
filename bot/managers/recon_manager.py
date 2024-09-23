@@ -1,5 +1,8 @@
 from typing import TYPE_CHECKING, Any
 
+from loguru import logger
+from sc2.constants import ALL_GAS
+
 from ares import ManagerMediator
 from ares.cache import property_cache_once_per_frame
 from ares.managers.manager import Manager
@@ -37,12 +40,14 @@ class ReconManager(Manager):
         super().__init__(ai, config, mediator)
 
         self.deimos_requests_dict = {
+            RequestType.GET_ENEMY_EARLY_DOUBLE_GAS: lambda kwargs: self._enemy_early_double_gas,
             RequestType.GET_ENEMY_EARLY_ROACH_WARREN: lambda kwargs: self._enemy_early_roach_warren,
             RequestType.GET_ENEMY_PROXIES: lambda kwargs: self.enemy_proxies,
             RequestType.GET_ENEMY_RUSHED: lambda kwargs: self._enemy_rushed,
         }
 
         self._enemy_rushed: bool = False
+        self._enemy_early_double_gas: bool = False
         self._enemy_early_roach_warren: bool = False
 
     def manager_request(
@@ -108,4 +113,11 @@ class ReconManager(Manager):
 
         if not self._enemy_early_roach_warren and self.ai.time < 110.0:
             if self.ai.enemy_structures(UnitID.ROACHWARREN):
+                logger.info(f"{self.ai.time_formatted} - Early roach warren")
                 self._enemy_early_roach_warren = True
+
+        if not self._enemy_early_double_gas and self.ai.time < 120.0:
+            if gas := self.ai.enemy_structures(ALL_GAS):
+                if len(gas) >= 2:
+                    logger.info(f"{self.ai.time_formatted} - Early double gas")
+                    self._enemy_early_double_gas = True
