@@ -205,7 +205,7 @@ class CombatManager(Manager):
         if (
             self.ai.enemy_race == Race.Zerg
             and len(self.manager_mediator.get_enemy_army_dict[UnitID.MUTALISK]) == 0
-        ):
+        ) or self.ai.build_order_runner.chosen_opening == "OneBaseTempests":
             self.aggressive = True
 
         elif self.aggressive:
@@ -264,6 +264,7 @@ class CombatManager(Manager):
             self.ground_squad_combat.execute(
                 squad.squad_units,
                 always_fight_near_enemy=not self.aggressive
+                or self.ai.build_order_runner.chosen_opening == "OneBaseTempests"
                 and cy_distance_to_squared(squad.squad_position, self.attack_target)
                 > 900,
                 all_close_enemy=all_close_enemy,
@@ -359,7 +360,10 @@ class CombatManager(Manager):
 
         # if we are defending just keep this True for now
         # maybe improve later
-        if not self.aggressive:
+        if (
+            not self.aggressive
+            or self.ai.build_order_runner.chosen_opening == "OneBaseTempests"
+        ):
             self._squad_id_to_engage_tracker[squad_id] = True
             return
 

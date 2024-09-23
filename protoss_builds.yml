@@ -65,7 +65,7 @@ Builds:
             - 22 gas
     AdeptVoidray:
         ConstantWorkerProductionTill: 44
-        AutoSupplyAtSupply: 27
+        AutoSupplyAtSupply: 28
         OpeningBuildOrder:
             - 14 pylon @ ramp
             - 15 gate @ ramp
@@ -76,8 +76,8 @@ Builds:
             - 20 core @ ramp
             - 20 chrono @ nexus
             - 20 pylon
-            - 20 nexus
             - 20 gas
+            - 20 nexus
             - 21 adept
             - 21 stargate
             - 24 warpgateresearch
@@ -91,12 +91,14 @@ Builds:
             - 32 adept
             - 32 adeptpiercingattack
             - 32 chrono @ twilightcouncil
-            - 34 adept *4
-            - 34 chrono @ twilightcouncil
-            - 34 nexus
+            - 32 gateway
+            - 32 pylon *2
             - 34 adept *3
             - 34 chrono @ twilightcouncil
-            - 34 adept *4
+            - 34 adept *5
+            - 34 chrono @ twilightcouncil
+            - 34 adept *5
+            - 34 nexus
 
     OneBaseTempests:
         ConstantWorkerProductionTill: 22
@@ -106,8 +108,9 @@ Builds:
             - 14 forge @ ramp
             - 15 chrono @ nexus
             - 16 gateway @ ramp
+            - 16 gas
             - 16 photoncannon @ ramp
-            - 16 gas *2
+            - 16 gas
             - 16 pylon
             - 16 core
             - 16 photoncannon @ ramp
@@ -121,7 +124,7 @@ Builds:
             - 16 tempest
             - 16 chrono @ stargate
             - 16 tempestgroundattackupgrade
-            - 16 photoncannon *2
+            - 16 photoncannon
             - 16 shieldbattery
 
     PhoenixEconomic:
