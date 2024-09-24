@@ -28,6 +28,8 @@ from cython_extensions import cy_closest_to, cy_in_attack_range
 if TYPE_CHECKING:
     from ares import AresBot
 
+CHASE_TYPES: set[UnitID] = {UnitID.MUTALISK}
+
 
 @dataclass
 class PhoenixHarass(BaseCombat):
@@ -155,6 +157,12 @@ class PhoenixHarass(BaseCombat):
                         if not cy_in_attack_range(unit, air):
                             maneuver.add(
                                 AMove(unit, cy_closest_to(unit.position, air).position)
+                            )
+                        elif chase := [u for u in air if u.type_id in CHASE_TYPES]:
+                            maneuver.add(
+                                AMove(
+                                    unit, cy_closest_to(unit.position, chase).position
+                                )
                             )
                         # in range of air, keep safe as we can
                         else:

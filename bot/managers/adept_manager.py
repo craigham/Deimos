@@ -249,7 +249,7 @@ class AdeptManager(Manager):
         # on this opening we hold back till adept timing
         if self.ai.build_order_runner.chosen_opening == "AdeptVoidray":
             time: float = (
-                270.0 if not self.deimos_mediator.get_enemy_early_double_gas else 90.0
+                290.0 if not self.deimos_mediator.get_enemy_early_double_gas else 90.0
             )
             if self.ai.time < time:
                 for adept in adepts:
