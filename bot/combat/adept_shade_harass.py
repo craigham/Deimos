@@ -60,20 +60,20 @@ class AdeptShadeHarass(BaseCombat):
         cancel_shades_dict: dict[int, bool] = kwargs["cancel_shades_dict"]
         grid: np.ndarray = kwargs["grid"]
         target_dict: dict[int, Point2] = kwargs["target_dict"]
-        near_enemy: dict[int, Units] = self.mediator.get_units_in_range(
-            start_points=units,
-            distances=15,
-            query_tree=UnitTreeQueryType.EnemyGround,
-            return_as_dict=True,
-        )
+        # near_enemy: dict[int, Units] = self.mediator.get_units_in_range(
+        #     start_points=units,
+        #     distances=15,
+        #     query_tree=UnitTreeQueryType.EnemyGround,
+        #     return_as_dict=True,
+        # )
 
         for unit in units:
             unit_tag: int = unit.tag
-            all_close: list[Unit] = [
-                u
-                for u in near_enemy[unit_tag]
-                if not u.is_memory and u.type_id not in COMMON_UNIT_IGNORE_TYPES
-            ]
+            # all_close: list[Unit] = [
+            #     u
+            #     for u in near_enemy[unit_tag]
+            #     if not u.is_memory and u.type_id not in COMMON_UNIT_IGNORE_TYPES
+            # ]
             # workers: list[Unit] = [u for u in all_close if u.type_id in WORKER_TYPES]
             target = self.ai.enemy_start_locations[0]
             if unit_tag in target_dict:
@@ -84,7 +84,7 @@ class AdeptShadeHarass(BaseCombat):
                 and cancel_shades_dict[unit_tag]
             ):
                 unit(AbilityId.CANCEL_ADEPTSHADEPHASESHIFT)
-            else:
+            elif not unit.is_moving:
                 unit.move(target)
 
     def _pick_target(self, units: list[Unit], targets: list[Unit]) -> Union[Unit, None]:

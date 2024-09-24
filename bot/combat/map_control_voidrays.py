@@ -80,6 +80,11 @@ class MapControlVoidrays(BaseCombat):
             query_tree=UnitTreeQueryType.AllEnemy,
             return_as_dict=True,
         )
+        enemy_near_spawn: list[Unit] = [
+            u
+            for u in self.ai.all_enemy_units
+            if cy_distance_to_squared(self.ai.start_location, u.position) < 3600.0
+        ]
 
         for unit in units:
             unit_tag: int = unit.tag
@@ -133,17 +138,21 @@ class MapControlVoidrays(BaseCombat):
                         )
                     )
 
-            target: Point2 = self.current_ol_spot_target
-            if enemy_ground_threats:
-                target = cy_closest_to(unit.position, enemy_ground_threats).position
+            move_to: Point2 = self.current_ol_spot_target
+            if self.ai.time > 280.0:
+                move_to = self.ai.start_location
+            elif enemy_near_spawn:
+                move_to = cy_closest_to(unit.position, enemy_near_spawn).position
+            elif enemy_ground_threats:
+                move_to = cy_closest_to(unit.position, enemy_ground_threats).position
             elif enemy_air_threats:
-                target = cy_closest_to(unit.position, enemy_air_threats).position
+                move_to = cy_closest_to(unit.position, enemy_air_threats).position
 
             maneuver.add(
                 UseAbility(
                     AbilityId.ATTACK_ATTACK,
                     unit,
-                    target,
+                    move_to,
                 )
             )
 

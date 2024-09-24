@@ -81,7 +81,7 @@ class SquadCombat(BaseCombat):
             u
             for u in all_close_enemy
             if not (u.is_cloaked or u.is_cloaked and u.is_revealed)
-            and not (u.is_burrowed or u.is_burrowed and u.is_revealed)
+            and not (u.is_burrowed or u.is_burrowed and u.is_visible)
             and not u.is_memory
             and u.type_id not in COMMON_UNIT_IGNORE_TYPES
         ]
@@ -133,8 +133,9 @@ class SquadCombat(BaseCombat):
                     e_target: Unit = cy_pick_enemy_target(danger_to_air)
                     if target and cy_attack_ready(self.ai, unit, e_target):
                         attacking_maneuver.add(AttackTarget(unit=unit, target=e_target))
+
                 # attack any units in range
-                elif in_attack_range_e := cy_in_attack_range(unit, only_enemy_units):
+                if in_attack_range_e := cy_in_attack_range(unit, only_enemy_units):
                     # `ShootTargetInRange` will check weapon is ready
                     # otherwise it will not execute
                     attacking_maneuver.add(
