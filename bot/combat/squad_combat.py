@@ -102,6 +102,8 @@ class SquadCombat(BaseCombat):
                 valid_targets = [u for u in valid_targets if not u.is_flying]
 
             if unit.type_id == UnitID.OBSERVER:
+                if self.ai.enemy_detectors:
+                    pass
                 attacking_maneuver.add(KeepUnitSafe(unit=unit, grid=grid))
                 attacking_maneuver.add(
                     PathUnitToTarget(unit=unit, grid=grid, target=target)

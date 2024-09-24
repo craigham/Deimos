@@ -50,7 +50,7 @@ class MapControlShades(BaseCombat):
         """
 
         for unit in units:
-            if unit.buff_duration_remain > 4 or unit.is_moving or (
+            if unit.buff_duration_remain > 4 or (
                 unit.order_target
                 and cy_distance_to_squared(unit.order_target, unit.position) > 630.0
             ):
