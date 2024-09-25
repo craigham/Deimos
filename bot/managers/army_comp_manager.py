@@ -91,15 +91,6 @@ class ArmyCompManager(Manager):
         }
 
     @property
-    def stalker_immortal_phoenix_comp(self) -> dict:
-        return {
-            UnitID.OBSERVER: {"proportion": 0.01, "priority": 2},
-            UnitID.IMMORTAL: {"proportion": 0.1, "priority": 1},
-            UnitID.STALKER: {"proportion": 0.65, "priority": 3},
-            UnitID.PHOENIX: {"proportion": 0.24, "priority": 0},
-        }
-
-    @property
     def stalker_phoenix_comp(self) -> dict:
         return {
             UnitID.STALKER: {"proportion": 0.5, "priority": 1},
@@ -141,7 +132,10 @@ class ArmyCompManager(Manager):
             and self.ai.supply_army < 32
         ):
             self._army_comp = self.stalker_comp
-        elif len(self.manager_mediator.get_enemy_army_dict[UnitID.MUTALISK]) > 0:
+        elif (
+            len(self.manager_mediator.get_enemy_army_dict[UnitID.MUTALISK]) > 1
+            and len(self.manager_mediator.get_own_army_dict[UnitID.PHOENIX]) < 6
+        ):
             self._army_comp = self.stalker_phoenix_comp
         elif self.ai.supply_used > 120 and self.ai.enemy_race != Race.Zerg:
             self._army_comp = self.stalker_tempests_comp
@@ -149,7 +143,5 @@ class ArmyCompManager(Manager):
             self._army_comp = self.adept_only_comp
         elif self.deimos_mediator.get_enemy_rushed and self.ai.time < 330.0:
             self._army_comp = self.stalker_immortal_no_observer
-        elif self.ai.build_order_runner.chosen_opening == "PhoenixEconomic":
-            self._army_comp = self.stalker_immortal_phoenix_comp
         else:
             self._army_comp = self.stalker_immortal_comp

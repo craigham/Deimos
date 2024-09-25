@@ -7,8 +7,8 @@ BuildChoices:
     test_123:
         BotName: Test
         Cycle:
-            # - PhoenixEconomic
-            - AdeptVoidray
+            - PhoenixEconomic
+            # - AdeptVoidray
             # - OneBaseTempests
 
     Protoss:
@@ -159,6 +159,7 @@ Builds:
             - 20 gateway
             - 20 pylon
             - 20 phoenix
+            - 20 chrono @ stargate
             - 20 gas
             - 20 gas
             - 20 phoenix

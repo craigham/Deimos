@@ -14,6 +14,7 @@ from ares.behaviors.macro import (
     SpawnController,
 )
 from ares.managers.manager import Manager
+from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
 from sc2.units import Units
 
@@ -84,6 +85,16 @@ class MacroManager(Manager):
             macro_plan: MacroPlan = MacroPlan()
             macro_plan.add(AutoSupply(self._main_building_location))
             macro_plan.add(BuildWorkers(max_probes))
+            if (
+                self.ai.build_order_runner.chosen_opening == "PhoenixEconomic"
+                and self.ai.supply_used < 90
+                and len(self.manager_mediator.get_own_army_dict[UnitID.PHOENIX]) < 8
+            ):
+                macro_plan.add(
+                    SpawnController(
+                        {UnitID.PHOENIX: {"proportion": 1.0, "priority": 0}}
+                    )
+                )
             macro_plan.add(
                 SpawnController(
                     self.deimos_mediator.get_army_comp,
