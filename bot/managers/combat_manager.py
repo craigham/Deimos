@@ -102,7 +102,8 @@ class CombatManager(Manager):
             )
             or (
                 self.ai.build_order_runner.chosen_opening == "OneBaseTempests"
-                and len(self.manager_mediator.get_own_army_dict[UnitID.TEMPEST]) <= 3
+                and self.ai.race not in {Race.Terran, Race.Zerg}
+                and len(self.manager_mediator.get_own_army_dict[UnitID.TEMPEST]) <= 2
             )
             or (
                 len(self.manager_mediator.get_enemy_army_dict[UnitID.MARINE]) > 6
@@ -149,13 +150,14 @@ class CombatManager(Manager):
             10,
         )
 
-        all_close_enemy: Units = self.manager_mediator.get_units_in_range(
-            start_points=[Point2(enemy_center_mass)],
-            distances=11.5,
-            query_tree=UnitTreeQueryType.EnemyGround,
-        )[0]
-        if self.ai.get_total_supply(all_close_enemy) >= 18:
-            return Point2(enemy_center_mass)
+        if self.ai.build_order_runner.chosen_opening != "OneBaseTempests":
+            all_close_enemy: Units = self.manager_mediator.get_units_in_range(
+                start_points=[Point2(enemy_center_mass)],
+                distances=11.5,
+                query_tree=UnitTreeQueryType.EnemyGround,
+            )[0]
+            if self.ai.get_total_supply(all_close_enemy) >= 18:
+                return Point2(enemy_center_mass)
 
         if enemy_structure_pos:
             return enemy_structure_pos
