@@ -139,7 +139,7 @@ class MapControlVoidrays(BaseCombat):
                     )
 
             move_to: Point2 = self.current_ol_spot_target
-            if self.ai.time > 280.0:
+            if self.ai.time > 295.0:
                 move_to = self.ai.enemy_start_locations[0]
             elif enemy_near_spawn:
                 move_to = cy_closest_to(unit.position, enemy_near_spawn).position

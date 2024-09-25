@@ -207,7 +207,7 @@ class CombatManager(Manager):
 
     def _check_aggressive_status(self) -> None:
         if (
-            self.ai.enemy_race == Race.Zerg
+            self.ai.enemy_race in {Race.Zerg, Race.Terran}
             and len(self.manager_mediator.get_enemy_army_dict[UnitID.MUTALISK]) == 0
         ) or self.ai.build_order_runner.chosen_opening == "OneBaseTempests":
             self.aggressive = True

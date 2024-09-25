@@ -27,7 +27,7 @@ from bot.combat.map_control_adepts import MapControlAdepts
 from bot.combat.map_control_shades import MapControlShades
 from bot.consts import COMMON_UNIT_IGNORE_TYPES, RequestType
 from bot.managers.deimos_mediator import DeimosMediator
-from cython_extensions import cy_distance_to_squared
+from cython_extensions import cy_distance_to_squared, cy_towards
 
 if TYPE_CHECKING:
     from ares import AresBot
@@ -272,7 +272,7 @@ class AdeptManager(Manager):
         enemy_townhalls: list[Unit] = [
             th
             for th in self.ai.enemy_structures
-            if th.type_id in TOWNHALL_TYPES and th.build_progress > 0.95
+            if th.type_id in TOWNHALL_TYPES and th.build_progress > 0.4
         ]
 
         best_engagement_result: EngagementResult = EngagementResult.LOSS_EMPHATIC
@@ -389,6 +389,16 @@ class AdeptManager(Manager):
                 cancel_shade_dict[phase.tag] = False
                 continue
 
+            a_position = adept.position.rounded
+            adept_weight: float = grid[a_position.x, a_position.y]
+
+            p_position = phase.position.rounded
+            shade_weight: float = grid[p_position.x, p_position.y]
+
+            if adept_weight < shade_weight:
+                cancel_shade_dict[phase.tag] = True
+                continue
+
             # ground units near adepts
             units_near_adepts: Units = self.manager_mediator.get_units_in_range(
                 start_points=[adept.position],
@@ -420,54 +430,7 @@ class AdeptManager(Manager):
                 ]
             )
 
-            if num_workers_near_shades >= num_workers_near_adepts:
-                cancel_shade_dict[phase.tag] = False
-                continue
-
-            position = adept.position.rounded
-            adept_weight: float = grid[position.x, position.y]
-
-            position = phase.position.rounded
-            shade_weight: float = grid[position.x, position.y]
-
-            if adept_weight > shade_weight:
-                cancel_shade_dict[phase.tag] = False
-            else:
+            if num_workers_near_adepts > num_workers_near_shades:
                 cancel_shade_dict[phase.tag] = True
-
-            # idea here is, if there is nothing threatening ground, then finish shade
-            # or if there happens to be enemy workers near shades
-            # if (
-            #     len(
-            #         [
-            #             u
-            #             for u in units_near_shades
-            #             if u.can_attack and u.type_id not in WORKER_TYPES
-            #         ]
-            #     )
-            #     == 0
-            #     or num_workers_near_shades >= 4
-            # ):
-            #     cancel_shade_dict[phase.tag] = False
-            #     continue
-            #
-            # units_near_adepts: list[Unit] = [
-            #     u
-            #     for u in units_near_adepts
-            #     if u.type_id not in COMMON_UNIT_IGNORE_TYPES
-            #     and u.type_id not in ALL_STRUCTURES
-            #     and u.type_id not in WORKER_TYPES
-            # ]
-            # units_near_shades: list[Unit] = [
-            #     u
-            #     for u in units_near_shades
-            #     if u.type_id not in COMMON_UNIT_IGNORE_TYPES
-            #     and u.type_id not in ALL_STRUCTURES
-            #     and u.type_id not in WORKER_TYPES
-            # ]
-            # if len(units_near_adepts) > len(units_near_shades):
-            #     cancel_shade_dict[phase.tag] = False
-            # else:
-            #     cancel_shade_dict[phase.tag] = True
 
         return cancel_shade_dict
