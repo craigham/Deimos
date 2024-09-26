@@ -97,8 +97,8 @@ Builds:
             - 34 chrono @ twilightcouncil
             - 34 adept *5
             - 34 chrono @ twilightcouncil
+            - 34 roboticsfacility
             - 34 adept *5
-            - 34 nexus
 
     OneBaseTempests:
         ConstantWorkerProductionTill: 22

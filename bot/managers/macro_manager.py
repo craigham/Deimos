@@ -54,7 +54,7 @@ class MacroManager(Manager):
         if self.deimos_mediator.get_enemy_rushed and self.ai.supply_army < 22:
             return False
 
-        return self.ai.minerals > 500
+        return self.ai.minerals > 400
 
     @property
     def gas_buildings_required(self) -> int:
@@ -65,6 +65,15 @@ class MacroManager(Manager):
         gas_required: int = 3 if supply_workers < 40 else 100
 
         return gas_required
+
+    @property
+    def require_phoenix(self) -> bool:
+        return (
+            self.ai.build_order_runner.chosen_opening == "PhoenixEconomic"
+            and self.ai.supply_used < 90
+            and len(self.manager_mediator.get_own_army_dict[UnitID.PHOENIX]) < 8
+            and len(self.manager_mediator.get_enemy_army_dict[UnitID.VIKINGFIGHTER]) < 2
+        )
 
     async def update(self, iteration: int) -> None:
         if iteration % 16 == 0:
@@ -85,11 +94,7 @@ class MacroManager(Manager):
             macro_plan: MacroPlan = MacroPlan()
             macro_plan.add(AutoSupply(self._main_building_location))
             macro_plan.add(BuildWorkers(max_probes))
-            if (
-                self.ai.build_order_runner.chosen_opening == "PhoenixEconomic"
-                and self.ai.supply_used < 90
-                and len(self.manager_mediator.get_own_army_dict[UnitID.PHOENIX]) < 8
-            ):
+            if self.require_phoenix:
                 macro_plan.add(
                     SpawnController(
                         {UnitID.PHOENIX: {"proportion": 1.0, "priority": 0}}
