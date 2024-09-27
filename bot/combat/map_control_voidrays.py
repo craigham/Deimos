@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING
 import numpy as np
 from ares import ManagerMediator
 from ares.behaviors.combat import CombatManeuver
-from ares.behaviors.combat.individual import AttackTarget, UseAbility
+from ares.behaviors.combat.individual import AttackTarget, UseAbility, KeepUnitSafe
+from bot.consts import COMMON_UNIT_IGNORE_TYPES
 from map_analyzer import MapData
 from sc2.ids.ability_id import AbilityId
-from sc2.ids.buff_id import BuffId
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
@@ -16,10 +16,11 @@ from src.ares.consts import UnitTreeQueryType
 
 from bot.combat.base_combat import BaseCombat
 from cython_extensions import (
-    cy_center,
     cy_closest_to,
     cy_distance_to_squared,
     cy_pick_enemy_target,
+    cy_distance_to,
+    cy_attack_ready,
 )
 
 if TYPE_CHECKING:
@@ -89,20 +90,38 @@ class MapControlVoidrays(BaseCombat):
         for unit in units:
             unit_tag: int = unit.tag
             close_enemy: Units = everything_near_voids[unit_tag].filter(
-                lambda u: not u.is_memory
+                lambda u: not u.is_memory and u.type_id not in COMMON_UNIT_IGNORE_TYPES
             )
             flying: list[Unit] = [u for u in close_enemy if u.is_flying]
 
             maneuver: CombatManeuver = CombatManeuver()
 
-            if close_enemy:
+            if unit.shield_health_percentage < 0.3:
+                maneuver.add(KeepUnitSafe(unit, grid))
+
+            elif close_enemy:
                 # dangerous effects etc, aggressively move to enemy
                 if not self.mediator.is_position_safe(
                     grid=avoidance_grid, position=unit.position
                 ):
                     target: Unit = cy_pick_enemy_target(close_enemy)
                     maneuver.add(UseAbility(AbilityId.MOVE_MOVE, unit, target.position))
-                elif flying_in_attack_range := [
+                if danger_to_air := [
+                    u
+                    for u in close_enemy
+                    if u.can_attack_air
+                    and cy_distance_to(u.position, unit.position)
+                    <= (
+                        (unit.ground_range if not u.is_flying else unit.air_range)
+                        + unit.radius
+                        + u.radius
+                    )
+                ]:
+                    e_target: Unit = cy_pick_enemy_target(danger_to_air)
+                    if e_target and cy_attack_ready(self.ai, unit, e_target):
+                        maneuver.add(AttackTarget(unit=unit, target=e_target))
+
+                if flying_in_attack_range := [
                     u
                     for u in flying
                     if cy_distance_to_squared(unit.position, u.position)

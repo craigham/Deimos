@@ -428,9 +428,9 @@ class AdeptManager(Manager):
 
             # let shades go for worker kills
             if (
-                num_workers_near_shades > 4
+                num_workers_near_shades > 2
                 and num_workers_near_shades > num_workers_near_adepts
-                and shade_weight < 30
+                and shade_weight < 32
             ):
                 continue
 

@@ -93,8 +93,8 @@ class ArmyCompManager(Manager):
     @property
     def stalker_phoenix_comp(self) -> dict:
         return {
-            UnitID.STALKER: {"proportion": 0.5, "priority": 1},
-            UnitID.PHOENIX: {"proportion": 0.5, "priority": 0},
+            UnitID.STALKER: {"proportion": 0.65, "priority": 1},
+            UnitID.PHOENIX: {"proportion": 0.35, "priority": 0},
         }
 
     @property
@@ -134,7 +134,7 @@ class ArmyCompManager(Manager):
             self._army_comp = self.stalker_comp
         elif (
             len(self.manager_mediator.get_enemy_army_dict[UnitID.MUTALISK]) > 1
-            and len(self.manager_mediator.get_own_army_dict[UnitID.PHOENIX]) < 6
+            and len(self.manager_mediator.get_own_army_dict[UnitID.PHOENIX]) < 4
         ):
             self._army_comp = self.stalker_phoenix_comp
         elif self.ai.supply_used > 120 and self.ai.enemy_race != Race.Zerg:

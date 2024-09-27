@@ -116,7 +116,10 @@ class PhoenixHarass(BaseCombat):
             # keep safe from dangerous effects (storms, biles etc)
             maneuver.add(KeepUnitSafe(unit, avoidance_grid))
 
-            if close_enemy:
+            if unit.shield_percentage < 0.2:
+                maneuver.add(KeepUnitSafe(unit, air_grid))
+
+            elif close_enemy:
                 air: list[Unit]
                 ground: list[Unit]
                 ground, air = self.ai.split_ground_fliers(
