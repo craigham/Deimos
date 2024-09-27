@@ -28,7 +28,13 @@ from cython_extensions import cy_closest_to, cy_in_attack_range
 if TYPE_CHECKING:
     from ares import AresBot
 
-CHASE_TYPES: set[UnitID] = {UnitID.MUTALISK}
+IGNORE_LIFTABLE: set[UnitID] = {
+    UnitID.BROODLING,
+    UnitID.EGG,
+    UnitID.LARVA,
+    UnitID.ZERGLING,
+    UnitID.MULE,
+}
 
 
 @dataclass
@@ -128,14 +134,7 @@ class PhoenixHarass(BaseCombat):
                 liftable: list[Unit] = [
                     u
                     for u in ground
-                    if u.type_id
-                    not in {
-                        UnitID.BROODLING,
-                        UnitID.EGG,
-                        UnitID.LARVA,
-                        UnitID.ZERGLING,
-                        UnitID.MULE,
-                    }
+                    if u.type_id not in IGNORE_LIFTABLE
                     and u.type_id not in ALL_STRUCTURES
                 ]
                 maneuver.add(ShootTargetInRange(unit, air))
@@ -157,12 +156,6 @@ class PhoenixHarass(BaseCombat):
                         if not cy_in_attack_range(unit, air):
                             maneuver.add(
                                 AMove(unit, cy_closest_to(unit.position, air).position)
-                            )
-                        elif chase := [u for u in air if u.type_id in CHASE_TYPES]:
-                            maneuver.add(
-                                AMove(
-                                    unit, cy_closest_to(unit.position, chase).position
-                                )
                             )
                         # in range of air, keep safe as we can
                         else:

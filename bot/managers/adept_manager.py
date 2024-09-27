@@ -389,16 +389,6 @@ class AdeptManager(Manager):
                 cancel_shade_dict[phase.tag] = False
                 continue
 
-            a_position = adept.position.rounded
-            adept_weight: float = grid[a_position.x, a_position.y]
-
-            p_position = phase.position.rounded
-            shade_weight: float = grid[p_position.x, p_position.y]
-
-            if adept_weight < shade_weight:
-                cancel_shade_dict[phase.tag] = True
-                continue
-
             # ground units near adepts
             units_near_adepts: Units = self.manager_mediator.get_units_in_range(
                 start_points=[adept.position],
@@ -430,7 +420,22 @@ class AdeptManager(Manager):
                 ]
             )
 
-            if num_workers_near_adepts > num_workers_near_shades:
+            a_position = adept.position.rounded
+            adept_weight: float = grid[a_position.x, a_position.y]
+
+            p_position = phase.position.rounded
+            shade_weight: float = grid[p_position.x, p_position.y]
+
+            # let shades go for worker kills
+            if (
+                num_workers_near_shades > 4
+                and num_workers_near_shades > num_workers_near_adepts
+                and shade_weight < 30
+            ):
+                continue
+
+            if adept_weight < shade_weight:
                 cancel_shade_dict[phase.tag] = True
+                continue
 
         return cancel_shade_dict
