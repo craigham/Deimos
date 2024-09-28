@@ -78,16 +78,8 @@ class ArmyCompManager(Manager):
     @property
     def stalker_immortal_comp(self) -> dict:
         return {
-            UnitID.OBSERVER: {"proportion": 0.01, "priority": 0},
-            UnitID.IMMORTAL: {"proportion": 0.09, "priority": 1},
-            UnitID.STALKER: {"proportion": 0.9, "priority": 2},
-        }
-
-    @property
-    def stalker_immortal_no_observer(self) -> dict:
-        return {
-            UnitID.IMMORTAL: {"proportion": 0.1, "priority": 1},
-            UnitID.STALKER: {"proportion": 0.9, "priority": 0},
+            UnitID.IMMORTAL: {"proportion": 0.15, "priority": 1},
+            UnitID.STALKER: {"proportion": 0.85, "priority": 2},
         }
 
     @property
@@ -141,7 +133,5 @@ class ArmyCompManager(Manager):
             self._army_comp = self.stalker_tempests_comp
         elif self.manager_mediator.get_enemy_ling_rushed and self.ai.supply_army < 20:
             self._army_comp = self.adept_only_comp
-        elif self.deimos_mediator.get_enemy_rushed and self.ai.time < 330.0:
-            self._army_comp = self.stalker_immortal_no_observer
         else:
             self._army_comp = self.stalker_immortal_comp

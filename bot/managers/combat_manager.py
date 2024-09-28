@@ -29,8 +29,14 @@ from sc2.position import Point2
 from sc2.units import Units
 
 from bot.combat.base_combat import BaseCombat
+from bot.combat.observer_base_defence import ObserverBaseDefence
 from bot.combat.squad_combat import SquadCombat
-from bot.consts import COMMON_UNIT_IGNORE_TYPES, STATIC_DEFENCE, STEAL_FROM_ROLES
+from bot.consts import (
+    COMMON_UNIT_IGNORE_TYPES,
+    STATIC_DEFENCE,
+    STEAL_FROM_ROLES,
+    CLOAK_UNIT_TYPES,
+)
 from bot.managers.deimos_mediator import DeimosMediator
 from cython_extensions import cy_distance_to_squared
 
@@ -79,6 +85,9 @@ class CombatManager(Manager):
         self._squad_to_target: dict[str, Point2] = dict()
 
         self.ground_squad_combat: BaseCombat = SquadCombat(ai, config, mediator)
+        self.observer_base_defence: BaseCombat = ObserverBaseDefence(
+            ai, config, mediator
+        )
 
     @property_cache_once_per_frame
     def rally_point(self) -> Point2:
@@ -108,6 +117,10 @@ class CombatManager(Manager):
             or (
                 len(self.manager_mediator.get_enemy_army_dict[UnitID.MARINE]) > 6
                 and self.ai.supply_army < 16
+            )
+            or (
+                self.deimos_mediator.get_enemy_went_mass_ling
+                and self.ai.supply_army < 34
             )
         ):
             return self.rally_point
@@ -191,6 +204,7 @@ class CombatManager(Manager):
         )
 
     async def update(self, iteration: int) -> None:
+        self._manage_observer_base_defence()
         self._check_aggressive_status()
         # self._manage_combat_roles()
 
@@ -395,3 +409,32 @@ class CombatManager(Manager):
         # not engaging, check if we can
         elif fight_result in self.SQUAD_ENGAGE_THRESHOLD:
             self._squad_id_to_engage_tracker[squad.squad_id] = True
+
+    def _manage_observer_base_defence(self) -> None:
+        base_defence_observers: Units = self.manager_mediator.get_units_from_role(
+            role=UnitRole.BASE_DEFENDER, unit_type=UnitID.OBSERVER
+        )
+
+        enemy_cloak: Units = self.ai.all_enemy_units(CLOAK_UNIT_TYPES)
+
+        # assign base defender observer if needed
+        if len(enemy_cloak) > 0 and len(base_defence_observers) == 0:
+            if attacking_observers := self.manager_mediator.get_units_from_role(
+                role=UnitRole.ATTACKING, unit_type=UnitID.OBSERVER
+            ):
+                self.manager_mediator.assign_role(
+                    tag=attacking_observers[0].tag, role=UnitRole.BASE_DEFENDER
+                )
+
+        if not base_defence_observers:
+            return
+
+        move_to: Point2
+        if enemy_cloak:
+            move_to = cy_closest_to(self.ai.start_location, enemy_cloak).position
+        else:
+            move_to = self.ai.game_info.map_center
+
+        self.observer_base_defence.execute(
+            base_defence_observers, enemy_cloak=enemy_cloak, move_to=move_to
+        )

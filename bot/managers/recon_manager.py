@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Any
 
 from loguru import logger
 from sc2.constants import ALL_GAS
+from sc2.data import Race
 
 from ares import ManagerMediator
 from ares.cache import property_cache_once_per_frame
@@ -44,11 +45,13 @@ class ReconManager(Manager):
             RequestType.GET_ENEMY_EARLY_ROACH_WARREN: lambda kwargs: self._enemy_early_roach_warren,
             RequestType.GET_ENEMY_PROXIES: lambda kwargs: self.enemy_proxies,
             RequestType.GET_ENEMY_RUSHED: lambda kwargs: self._enemy_rushed,
+            RequestType.GET_WENT_MASS_LING: lambda kwargs: self._enemy_mass_ling,
         }
 
         self._enemy_rushed: bool = False
         self._enemy_early_double_gas: bool = False
         self._enemy_early_roach_warren: bool = False
+        self._enemy_mass_ling: bool = False
 
     def manager_request(
         self,
@@ -121,3 +124,12 @@ class ReconManager(Manager):
                 if len(gas) >= 2:
                     logger.info(f"{self.ai.time_formatted} - Early double gas")
                     self._enemy_early_double_gas = True
+
+        if (
+            not self._enemy_mass_ling
+            and self.ai.enemy_race == Race.Zerg
+            and self.ai.time < 260.0
+        ):
+            if len(self.manager_mediator.get_enemy_army_dict[UnitID.ZERGLING]) > 16:
+                logger.info(f"{self.ai.time_formatted} - Eanemy mass ling")
+                self._enemy_mass_ling = True

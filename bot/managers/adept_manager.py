@@ -155,7 +155,10 @@ class AdeptManager(Manager):
         #         self.manager_mediator.assign_role(tag=unit.tag, role=UnitRole.ATTACKING)
 
         for unit in defending_adepts:
-            if self.manager_mediator.get_enemy_ling_rushed:
+            if (
+                self.manager_mediator.get_enemy_ling_rushed
+                or self.deimos_mediator.get_enemy_went_mass_ling
+            ):
                 role = UnitRole.ATTACKING
             else:
                 role = UnitRole.HARASSING_ADEPT

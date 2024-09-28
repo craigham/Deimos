@@ -114,3 +114,7 @@ class DeimosMediator(IDeimosMediator):
     @property
     def get_enemy_rushed(self) -> bool:
         return self.manager_request("ReconManager", RequestType.GET_ENEMY_RUSHED)
+
+    @property
+    def get_enemy_went_mass_ling(self) -> bool:
+        return self.manager_request("ReconManager", RequestType.GET_WENT_MASS_LING)

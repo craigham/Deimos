@@ -70,6 +70,7 @@ class MapControlVoidrays(BaseCombat):
         if self.ai.is_visible(self.current_ol_spot_target):
             self.current_ol_spot_target = next(self.ol_spot_generator)
         grid: np.ndarray = kwargs["grid"]
+        stay_defensive: bool = kwargs["stay_defensive"]
         avoidance_grid: np.ndarray = self.mediator.get_air_avoidance_grid
         enemy_ground_threats: Units = (
             self.mediator.get_main_ground_threats_near_townhall
@@ -158,7 +159,7 @@ class MapControlVoidrays(BaseCombat):
                     )
 
             move_to: Point2 = self.current_ol_spot_target
-            if self.ai.time > 295.0:
+            if self.ai.time > 295.0 and not stay_defensive:
                 move_to = self.ai.enemy_start_locations[0]
             elif enemy_near_spawn:
                 move_to = cy_closest_to(unit.position, enemy_near_spawn).position

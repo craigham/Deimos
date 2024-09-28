@@ -67,6 +67,18 @@ class MacroManager(Manager):
         return gas_required
 
     @property
+    def require_observer(self) -> bool:
+        if self.deimos_mediator.get_enemy_rushed and self.ai.time < 330.0:
+            return False
+
+        observers_required: int = 1 if self.ai.supply_used < 60 else 4
+        return (
+            len(self.manager_mediator.get_own_army_dict[UnitID.OBSERVER])
+            + self.ai.unit_pending(UnitID.OBSERVER)
+            < observers_required
+        )
+
+    @property
     def require_phoenix(self) -> bool:
         return (
             self.ai.build_order_runner.chosen_opening == "PhoenixEconomic"
@@ -94,6 +106,12 @@ class MacroManager(Manager):
             macro_plan: MacroPlan = MacroPlan()
             macro_plan.add(AutoSupply(self._main_building_location))
             macro_plan.add(BuildWorkers(max_probes))
+            if self.require_observer:
+                macro_plan.add(
+                    SpawnController(
+                        {UnitID.OBSERVER: {"proportion": 1.0, "priority": 0}}
+                    )
+                )
             if self.require_phoenix:
                 macro_plan.add(
                     SpawnController(

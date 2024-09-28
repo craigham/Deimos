@@ -59,9 +59,9 @@ class PhoenixManager(Manager):
         self._squad_id_to_engage_tracker: dict[str, bool] = dict()
 
     def _update_phoenix_harass_target(self, phoenixes: list[Unit]) -> None:
-        if mutas := self.ai.enemy_units(UnitID.MUTALISK):
+        if enemy_harass := self.ai.enemy_units({UnitID.BANSHEE, UnitID.MUTALISK}):
             self.phoenix_harass_target = cy_closest_to(
-                self.ai.start_location, mutas
+                self.ai.start_location, enemy_harass
             ).position
             return
 

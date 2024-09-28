@@ -60,4 +60,11 @@ class MapControlManager(Manager):
         voids: Units = self.manager_mediator.get_units_from_role(
             role=UnitRole.MAP_CONTROL, unit_type=UnitID.VOIDRAY
         )
-        self.map_control_voidrays.execute(voids, grid=grid)
+        self.map_control_voidrays.execute(
+            voids,
+            stay_defensive=(
+                self.deimos_mediator.get_enemy_rushed
+                or self.deimos_mediator.get_enemy_went_mass_ling
+            ),
+            grid=grid,
+        )
