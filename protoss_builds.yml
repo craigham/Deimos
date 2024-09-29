@@ -7,7 +7,8 @@ BuildChoices:
     test_123:
         BotName: Test
         Cycle:
-            - PhoenixEconomic
+            - BasicOpener
+            # - PhoenixEconomic
             # - AdeptVoidray
             # - OneBaseTempests
 
@@ -19,7 +20,7 @@ BuildChoices:
     Random:
         BotName: RandomRace
         Cycle:
-            - OneBaseTempests
+            - BasicOpener
 
     Terran:
         BotName: TerranRace
@@ -99,6 +100,17 @@ Builds:
             - 34 chrono @ twilightcouncil
             - 34 roboticsfacility
             - 34 adept *5
+
+    BasicOpener:
+        ConstantWorkerProductionTill: 22
+        AutoSupplyAtSupply: 100
+        OpeningBuildOrder:
+            - 14 pylon @ ramp
+            - 14 worker_scout
+            - 15 gate @ ramp
+            - 15 chrono @ nexus
+            - 16 gas
+            - 20 core @ ramp
 
     OneBaseTempests:
         ConstantWorkerProductionTill: 22

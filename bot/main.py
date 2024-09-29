@@ -35,6 +35,8 @@ class MyBot(AresBot):
         """
         super().__init__(game_step_override)
         self._deimos_mediator: DeimosMediator = DeimosMediator()
+        self._starting_enemy_race: Race = Race.Protoss
+        self._switched_opening_due_to_random: bool = False
 
     def register_managers(self) -> None:
         """
@@ -63,6 +65,8 @@ class MyBot(AresBot):
         self._deimos_mediator.add_managers(additional_managers)
 
         self.manager_hub.init_managers()
+
+        self._starting_enemy_race = self.enemy_race
 
     async def on_step(self, iteration: int) -> None:
         await super(MyBot, self).on_step(iteration)
@@ -100,6 +104,20 @@ class MyBot(AresBot):
 
                 logger.info(f"{self.time_formatted}: Setting BO Completed")
                 self.build_order_runner.set_build_completed()
+
+        if (
+            self._starting_enemy_race == Race.Random
+            and self.enemy_race != Race.Random
+            and not self._switched_opening_due_to_random
+        ):
+            switch_to: str = "PhoenixEconomic"
+            if self.enemy_race == Race.Zerg:
+                switch_to = "AdeptVoidray"
+            elif self.enemy_race == Race.Protoss:
+                switch_to = "AdeptOracle"
+            self.build_order_runner.switch_opening(switch_to)
+            await self.chat_send(f"Tag:Random_{self.enemy_race.name}")
+            self._switched_opening_due_to_random = True
 
     async def on_unit_created(self, unit: Unit) -> None:
         await super(MyBot, self).on_unit_created(unit)
