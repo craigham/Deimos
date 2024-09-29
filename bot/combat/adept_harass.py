@@ -126,7 +126,9 @@ class AdeptHarass(BaseCombat):
                             )
                         )
                     else:
-                        adept_harass.add(PathUnitToTarget(unit, grid, target))
+                        adept_harass.add(
+                            PathUnitToTarget(unit, grid, target, sense_danger=False)
+                        )
                 else:
                     adept_harass.add(KeepUnitSafe(unit, grid))
             # moving on map

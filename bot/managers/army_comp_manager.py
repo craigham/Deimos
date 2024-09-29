@@ -115,7 +115,14 @@ class ArmyCompManager(Manager):
         }
 
     async def update(self, iteration: int) -> None:
-        if self.manager_mediator.get_enemy_worker_rushed and self.ai.supply_used < 26:
+        if (
+            self.manager_mediator.get_enemy_worker_rushed and self.ai.supply_used < 26
+        ) or (
+            self.manager_mediator.get_enemy_ling_rushed
+            and not self.manager_mediator.get_own_structures_dict[
+                UnitID.CYBERNETICSCORE
+            ].ready
+        ):
             self._army_comp = self.zealot_only
         elif self.ai.build_order_runner.chosen_opening == "OneBaseTempests":
             self._army_comp = self.tempests_comp
