@@ -168,6 +168,7 @@ class AdeptManager(Manager):
         if (
             self.manager_mediator.get_enemy_went_reaper
             and not self._assigned_adept_defence
+            and self.ai.time > 160.0
         ):
             if harrassing_adepts := self.manager_mediator.get_units_from_role(
                 role=UnitRole.HARASSING_ADEPT

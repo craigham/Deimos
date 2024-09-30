@@ -84,6 +84,7 @@ class MyBot(AresBot):
                     and self.unit_pending(UnitID.VOIDRAY)
                 )
                 or (len(self.mediator.get_enemy_army_dict[UnitID.MARINE]) > 6)
+                or (len(self.mediator.get_enemy_army_dict[UnitID.REAPER]) > 2)
             ):
                 if self.mediator.get_enemy_roach_rushed:
                     for th in self.townhalls.not_ready:

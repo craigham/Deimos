@@ -279,18 +279,21 @@ class CombatManager(Manager):
             if self.deimos_mediator.get_enemy_rushed and self.ai.time < 330.0:
                 can_engage = True
 
-            self._manage_squad_target(squad, can_engage, all_close_enemy, move_to)
+            # self._manage_squad_target(squad, can_engage, all_close_enemy, move_to)
 
             self.ground_squad_combat.execute(
                 squad.squad_units,
                 always_fight_near_enemy=not self.aggressive
-                or self.ai.build_order_runner.chosen_opening == "OneBaseTempests"
-                and cy_distance_to_squared(squad.squad_position, self.attack_target)
-                > 900,
+                or (
+                    self.ai.build_order_runner.chosen_opening == "OneBaseTempests"
+                    and cy_distance_to_squared(squad.squad_position, self.attack_target)
+                    > 900
+                ),
                 all_close_enemy=all_close_enemy,
                 can_engage=can_engage,
                 main_squad=squad.main_squad,
-                target=self._squad_to_target[squad.squad_id],
+                target=move_to
+                # target=self._squad_to_target[squad.squad_id],
             )
 
     def _manage_squad_target(
