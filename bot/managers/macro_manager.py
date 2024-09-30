@@ -71,7 +71,7 @@ class MacroManager(Manager):
         if self.deimos_mediator.get_enemy_rushed and self.ai.time < 330.0:
             return False
 
-        observers_required: int = 1 if self.ai.supply_used < 60 else 4
+        observers_required: int = 1 if self.ai.supply_used < 90 else 4
         return (
             len(self.manager_mediator.get_own_army_dict[UnitID.OBSERVER])
             + self.ai.unit_pending(UnitID.OBSERVER)

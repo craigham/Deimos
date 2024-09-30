@@ -12,7 +12,7 @@ from ares.consts import (
     UnitTreeQueryType,
 )
 from ares.managers.manager import Manager
-from cython_extensions.units_utils import cy_closest_to
+from cython_extensions.units_utils import cy_closest_to, cy_center
 from map_analyzer import MapData
 from sc2.data import Race
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
@@ -76,6 +76,7 @@ class AdeptManager(Manager):
         self._shade_targets: dict[int, Point2] = dict()
         self._assigned_shades: set[int] = set()
         self._assigned_map_control_adept: bool = False
+        self._assigned_adept_defence: bool = False
 
     def initialise(self) -> None:
         self.map_control_adepts: BaseCombat = MapControlAdepts(
@@ -144,15 +145,37 @@ class AdeptManager(Manager):
             self._manage_map_control_adepts()
         self._manage_adept_harrass(cancel_shades_dict, grid)
 
+        if defending_adepts := self.manager_mediator.get_units_from_role(
+            role=UnitRole.BASE_DEFENDER, unit_type=UnitID.ADEPT
+        ):
+            for adept in defending_adepts:
+                if (
+                    ground_threats := self.manager_mediator.get_main_ground_threats_near_townhall
+                ):
+                    adept.attack(Point2(cy_center(ground_threats)))
+                elif reapers := [
+                    u
+                    for u in self.ai.enemy_units
+                    if u.type_id == UnitID.REAPER
+                    and cy_distance_to_squared(self.ai.start_location, u.position)
+                    < 2500
+                ]:
+                    adept.attack(cy_closest_to(self.ai.start_location, reapers))
+                else:
+                    adept.attack(self.ai.start_location)
+
     def _manage_adept_roles(self, defending_adepts: Units) -> None:
-        # On this opening leave adepts on defence
-        # if (
-        #     self.ai.build_order_runner.chosen_opening == "AdeptVoidray"
-        #     and self.ai.time < 280.0
-        # ):
-        #     for unit in defending_adepts:
-        #
-        #         self.manager_mediator.assign_role(tag=unit.tag, role=UnitRole.ATTACKING)
+        if (
+            self.manager_mediator.get_enemy_went_reaper
+            and not self._assigned_adept_defence
+        ):
+            if harrassing_adepts := self.manager_mediator.get_units_from_role(
+                role=UnitRole.HARASSING_ADEPT
+            ):
+                self.manager_mediator.assign_role(
+                    tag=harrassing_adepts[0].tag, role=UnitRole.BASE_DEFENDER
+                )
+                self._assigned_adept_defence = True
 
         for unit in defending_adepts:
             if (

@@ -411,6 +411,8 @@ class CombatManager(Manager):
             self._squad_id_to_engage_tracker[squad.squad_id] = True
 
     def _manage_observer_base_defence(self) -> None:
+        if self.ai.time > 300.0:
+            return
         base_defence_observers: Units = self.manager_mediator.get_units_from_role(
             role=UnitRole.BASE_DEFENDER, unit_type=UnitID.OBSERVER
         )

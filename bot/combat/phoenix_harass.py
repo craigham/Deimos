@@ -132,7 +132,7 @@ class PhoenixHarass(BaseCombat):
                 )
                 # check we have enough around to hit air
                 if lift_ready:
-                    lift_ready = len([u for u in close_own if u.can_attack_air]) >= 3
+                    lift_ready = len([u for u in close_own if u.can_attack_air]) >= 2
 
                 liftable: list[Unit] = [
                     u

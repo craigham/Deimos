@@ -65,6 +65,12 @@ class PhoenixManager(Manager):
             ).position
             return
 
+        if reapers := self.ai.enemy_units({UnitID.REAPER}):
+            self.phoenix_harass_target = cy_closest_to(
+                self.ai.start_location, reapers
+            ).position
+            return
+
         enemy_townhalls: Units = self.ai.enemy_structures(TOWNHALL_TYPES)
 
         best_result: EngagementResult = EngagementResult.LOSS_EMPHATIC
