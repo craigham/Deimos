@@ -70,17 +70,22 @@ class MyBot(AresBot):
 
     async def on_step(self, iteration: int) -> None:
         await super(MyBot, self).on_step(iteration)
-        if not self.build_order_runner.build_completed:
+        if (
+            not self.build_order_runner.build_completed
+            and self.build_order_runner.chosen_opening != "OneBaseTempests"
+        ):
             if (
                 (
                     self._deimos_mediator.get_enemy_rushed
-                    and self.build_order_runner.chosen_opening != "OneBaseTempests"
                     and not self.mediator.get_enemy_ravager_rush
                     and not self.mediator.get_enemy_roach_rushed
                 )
                 or self.minerals > 800
                 or (
-                    self.mediator.get_enemy_roach_rushed
+                    (
+                        self.mediator.get_enemy_roach_rushed
+                        or len(self.mediator.get_enemy_army_dict[UnitID.ROACH]) > 2
+                    )
                     and self.unit_pending(UnitID.VOIDRAY)
                 )
                 or (len(self.mediator.get_enemy_army_dict[UnitID.MARINE]) > 6)
@@ -90,7 +95,7 @@ class MyBot(AresBot):
                     for th in self.townhalls.not_ready:
                         self.mediator.cancel_structure(structure=th)
                 if self.enemy_race == Race.Terran:
-                    for sg in self.enemy_structures(UnitID.STARGATE):
+                    for sg in self.structures(UnitID.STARGATE):
                         self.mediator.cancel_structure(structure=sg)
 
                 if not self._deimos_mediator.get_enemy_proxies:

@@ -48,6 +48,7 @@ class MacroManager(Manager):
 
         self._main_building_location: Point2 = self.ai.start_location
         self._workers_per_gas: int = 3
+        self._on_gas_toggle: bool = True
 
     @property
     def can_expand(self) -> bool:
@@ -97,7 +98,7 @@ class MacroManager(Manager):
 
         self._do_mining()
         if self.ai.build_order_runner.build_completed:
-            max_probes: int = min(74, 22 * len(self.ai.townhalls))
+            max_probes: int = min(90, 22 * len(self.ai.townhalls))
             if (
                 not self.manager_mediator.get_enemy_expanded
                 and self.ai.supply_army < 28
@@ -146,7 +147,7 @@ class MacroManager(Manager):
                     self.deimos_mediator.get_army_comp,
                     base_location=self._main_building_location,
                     add_production_at_bank=add_production_at_bank,
-                    alpha=0.7,
+                    alpha=0.6,
                 )
             )
 
@@ -166,12 +167,22 @@ class MacroManager(Manager):
             or (
                 self.ai.minerals < 100
                 and self.ai.vespene > 300
-                and self.ai.supply_used < 64
+                and self.ai.supply_used < 84
             )
         ):
             self._workers_per_gas = 0
         elif self.ai.vespene < 100:
             self._workers_per_gas = 3
+
+        if self._on_gas_toggle:
+            if self.ai.vespene > 1500 and self.ai.minerals < 100:
+                self._on_gas_toggle = False
+        else:
+            if self.ai.vespene < 400 or self.ai.minerals > 1200:
+                self._on_gas_toggle = True
+
+        if not self._on_gas_toggle:
+            self._workers_per_gas = 0
         self.ai.register_behavior(Mining(workers_per_gas=self._workers_per_gas))
 
     def _check_building_location(self):

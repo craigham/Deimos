@@ -168,9 +168,9 @@ class SquadCombat(BaseCombat):
                     # can't engage, stay safe but also attempt to get to target
                     else:
                         attacking_maneuver.add(KeepUnitSafe(unit=unit, grid=grid))
-                        attacking_maneuver.add(
-                            PathUnitToTarget(unit=unit, grid=grid, target=target)
-                        )
+                        # attacking_maneuver.add(
+                        #     PathUnitToTarget(unit=unit, grid=grid, target=target)
+                        # )
                 else:
                     attacking_maneuver.add(KeepUnitSafe(unit=unit, grid=grid))
                     attacking_maneuver.add(
