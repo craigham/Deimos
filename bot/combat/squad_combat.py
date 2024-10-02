@@ -93,6 +93,11 @@ class SquadCombat(BaseCombat):
         for unit in units:
             grid = air_grid if unit.is_flying else ground_grid
             attacking_maneuver: CombatManeuver = CombatManeuver()
+            # TODO: improve zealots
+            if unit.type_id == UnitID.ZEALOT:
+                attacking_maneuver.add(AMove(unit=unit, target=target))
+                self.ai.register_behavior(attacking_maneuver)
+                continue
 
             if unit.can_attack_both:
                 valid_targets = valid_targets

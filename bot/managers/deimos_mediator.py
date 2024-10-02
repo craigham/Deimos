@@ -96,16 +96,20 @@ class DeimosMediator(IDeimosMediator):
         return self.manager_request("ArmyCompManager", RequestType.GET_ARMY_COMP)
 
     @property
-    def get_enemy_early_double_gas(self) -> list[Unit]:
+    def get_enemy_early_double_gas(self) -> bool:
         return self.manager_request(
             "ReconManager", RequestType.GET_ENEMY_EARLY_DOUBLE_GAS
         )
 
     @property
-    def get_enemy_early_roach_warren(self) -> list[Unit]:
+    def get_enemy_early_roach_warren(self) -> bool:
         return self.manager_request(
             "ReconManager", RequestType.GET_ENEMY_EARLY_ROACH_WARREN
         )
+
+    @property
+    def get_enemy_fast_third(self) -> bool:
+        return self.manager_request("ReconManager", RequestType.GET_ENEMY_FAST_THIRD)
 
     @property
     def get_enemy_proxies(self) -> list[Unit]:

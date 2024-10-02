@@ -168,15 +168,18 @@ class AdeptManager(Manager):
         if (
             self.manager_mediator.get_enemy_went_reaper
             and not self._assigned_adept_defence
-            and self.ai.time > 160.0
         ):
             if harrassing_adepts := self.manager_mediator.get_units_from_role(
                 role=UnitRole.HARASSING_ADEPT
             ):
-                self.manager_mediator.assign_role(
-                    tag=harrassing_adepts[0].tag, role=UnitRole.BASE_DEFENDER
-                )
-                self._assigned_adept_defence = True
+                if len(harrassing_adepts) > 1:
+                    self.manager_mediator.assign_role(
+                        tag=cy_closest_to(
+                            self.ai.start_location, harrassing_adepts
+                        ).tag,
+                        role=UnitRole.BASE_DEFENDER,
+                    )
+                    self._assigned_adept_defence = True
 
         for unit in defending_adepts:
             if (

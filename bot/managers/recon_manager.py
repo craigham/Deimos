@@ -43,6 +43,7 @@ class ReconManager(Manager):
         self.deimos_requests_dict = {
             RequestType.GET_ENEMY_EARLY_DOUBLE_GAS: lambda kwargs: self._enemy_early_double_gas,
             RequestType.GET_ENEMY_EARLY_ROACH_WARREN: lambda kwargs: self._enemy_early_roach_warren,
+            RequestType.GET_ENEMY_FAST_THIRD: lambda kwargs: self._enemy_fast_third,
             RequestType.GET_ENEMY_PROXIES: lambda kwargs: self.enemy_proxies,
             RequestType.GET_ENEMY_RUSHED: lambda kwargs: self._enemy_rushed,
             RequestType.GET_WENT_MASS_LING: lambda kwargs: self._enemy_mass_ling,
@@ -52,6 +53,7 @@ class ReconManager(Manager):
         self._enemy_early_double_gas: bool = False
         self._enemy_early_roach_warren: bool = False
         self._enemy_mass_ling: bool = False
+        self._enemy_fast_third: bool = False
 
     def manager_request(
         self,
@@ -133,3 +135,10 @@ class ReconManager(Manager):
             if len(self.manager_mediator.get_enemy_army_dict[UnitID.ZERGLING]) > 16:
                 logger.info(f"{self.ai.time_formatted} - Eanemy mass ling")
                 self._enemy_mass_ling = True
+
+        if (
+            not self._enemy_fast_third
+            and self.manager_mediator.get_enemy_has_base_outside_natural
+            and self.ai.time < 120.0
+        ):
+            self._enemy_fast_third = True

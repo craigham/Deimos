@@ -13,6 +13,7 @@ from ares.behaviors.combat.individual import (
 )
 from ares.consts import VICTORY_DECISIVE_OR_BETTER, EngagementResult
 from sc2.ids.ability_id import AbilityId
+from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
@@ -29,6 +30,13 @@ from cython_extensions import (
 
 if TYPE_CHECKING:
     from ares import AresBot
+
+STATIC_DEF: set[UnitID] = {
+    UnitID.BUNKER,
+    UnitID.PLANETARYFORTRESS,
+    UnitID.PHOTONCANNON,
+    UnitID.SPINECRAWLER,
+}
 
 
 @dataclass
@@ -98,6 +106,8 @@ class AdeptHarass(BaseCombat):
             # fighting logic
             elif all_close:
                 can_take_fight: bool = self._can_take_fight(unit, all_close)
+                if len([u for u in all_close if u.type_id in STATIC_DEF]) > 0:
+                    can_take_fight = False
                 if in_attack_range := cy_in_attack_range(unit, workers):
                     # `ShootTargetInRange` will check weapon is ready
                     # otherwise it will not execute

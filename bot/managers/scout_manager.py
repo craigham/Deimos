@@ -1,6 +1,9 @@
 from typing import TYPE_CHECKING
 
+from sc2.data import Race
+
 from ares import ManagerMediator
+from ares.behaviors.combat.individual import KeepUnitSafe
 from ares.consts import ALL_STRUCTURES, WORKER_TYPES, UnitRole, UnitTreeQueryType
 from ares.managers.manager import Manager
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
@@ -35,9 +38,40 @@ class ScoutManager(Manager):
             ManagerMediator used for getting information from other managers.
         """
         super().__init__(ai, config, mediator)
+        self._provided_probe_new_orders: bool = False
 
     async def update(self, iteration: int) -> None:
         self._probe_proxy_denier()
+        self._probe_expansion_scout()
+        self._probe_delay_lings()
+
+    def _probe_delay_lings(self) -> None:
+        if self.manager_mediator.get_enemy_ling_rushed:
+            worker_scouts: Units = self.manager_mediator.get_units_from_role(
+                role=UnitRole.BUILD_RUNNER_SCOUT, unit_type=self.ai.worker_type
+            )
+            for scout in worker_scouts:
+                self.ai.register_behavior(
+                    KeepUnitSafe(scout, self.manager_mediator.get_ground_grid)
+                )
+
+    def _probe_expansion_scout(self) -> None:
+        if self.ai.enemy_race != Race.Zerg or self._provided_probe_new_orders:
+            return
+
+        if self.manager_mediator.get_enemy_expanded:
+            worker_scouts: Units = self.manager_mediator.get_units_from_role(
+                role=UnitRole.BUILD_RUNNER_SCOUT, unit_type=self.ai.worker_type
+            )
+            enemy_expansions = self.manager_mediator.get_enemy_expansions
+            for scout in worker_scouts:
+                scout.move(enemy_expansions[1][0])
+                scout.move(enemy_expansions[2][0], queue=True)
+                scout.move(enemy_expansions[3][0], queue=True)
+                scout.move(enemy_expansions[1][0], queue=True)
+                scout.move(enemy_expansions[2][0], queue=True)
+                scout.move(enemy_expansions[3][0], queue=True)
+            self._provided_probe_new_orders = True
 
     def _probe_proxy_denier(self):
         """Turn scouting probe, into a proxy denier

@@ -90,6 +90,7 @@ class MyBot(AresBot):
                 )
                 or (len(self.mediator.get_enemy_army_dict[UnitID.MARINE]) > 6)
                 or (len(self.mediator.get_enemy_army_dict[UnitID.REAPER]) > 2)
+                or self._deimos_mediator.get_enemy_fast_third
             ):
                 if self.mediator.get_enemy_roach_rushed:
                     for th in self.townhalls.not_ready:
