@@ -69,7 +69,11 @@ class MacroManager(Manager):
 
     @property
     def require_observer(self) -> bool:
-        if self.deimos_mediator.get_enemy_rushed and self.ai.time < 330.0:
+        if (
+            self.deimos_mediator.get_enemy_rushed
+            and self.ai.time < 330.0
+            and len(self.manager_mediator.get_enemy_army_dict[UnitID.BANSHEE]) == 0
+        ):
             return False
 
         observers_required: int = 1 if self.ai.supply_used < 90 else 4

@@ -110,8 +110,16 @@ class PhoenixHarass(BaseCombat):
                 }
             )
             move_to: Point2 = target if main_squad else pos_of_main_squad
+            u_position: Point2 = unit.position.rounded
 
             maneuver: CombatManeuver = CombatManeuver()
+
+            if (
+                AbilityId.CANCEL_GRAVITONBEAM in unit.abilities
+                and air_grid[u_position.x, u_position.y] > 14
+            ):
+                unit(AbilityId.CANCEL_GRAVITONBEAM)
+                continue
 
             # keep safe from dangerous effects (storms, biles etc)
             maneuver.add(KeepUnitSafe(unit, avoidance_grid))
@@ -151,14 +159,14 @@ class PhoenixHarass(BaseCombat):
                         ]
                         if lifted:
                             maneuver.add(
-                                AttackTarget(unit, cy_closest_to(unit.position, lifted))
+                                AttackTarget(unit, cy_closest_to(u_position, lifted))
                             )
                         # stay out of range of ground to air units
                         maneuver.add(KeepUnitSafe(unit, ground_to_air_grid))
                         # already have ShootTargetInRange, so just try to keep in range
                         if not cy_in_attack_range(unit, air):
                             maneuver.add(
-                                AMove(unit, cy_closest_to(unit.position, air).position)
+                                AMove(unit, cy_closest_to(u_position, air).position)
                             )
                         # in range of air, keep safe as we can
                         else:

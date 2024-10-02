@@ -89,7 +89,9 @@ class AdeptHarass(BaseCombat):
             all_close: list[Unit] = [
                 u
                 for u in near_enemy[unit_tag]
-                if not u.is_memory and u.type_id not in COMMON_UNIT_IGNORE_TYPES
+                if not u.is_memory
+                and u.type_id not in COMMON_UNIT_IGNORE_TYPES
+                and not u.is_snapshot
             ]
             only_enemy_units: list[Unit] = [
                 u for u in all_close if u.type_id not in ALL_STRUCTURES
