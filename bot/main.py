@@ -84,9 +84,16 @@ class MyBot(AresBot):
                 or (
                     (
                         self.mediator.get_enemy_roach_rushed
-                        or len(self.mediator.get_enemy_army_dict[UnitID.ROACH]) > 2
+                        or (
+                            len(self.mediator.get_enemy_army_dict[UnitID.ROACH]) >= 2
+                            and self.time < 240.0
+                        )
                     )
-                    and self.unit_pending(UnitID.VOIDRAY)
+                    and (
+                        self.unit_pending(UnitID.VOIDRAY)
+                        or self.mediator.get_own_unit_count(unit_type_id=UnitID.VOIDRAY)
+                        > 0
+                    )
                 )
                 or (len(self.mediator.get_enemy_army_dict[UnitID.MARINE]) > 6)
                 or (len(self.mediator.get_enemy_army_dict[UnitID.REAPER]) > 2)
