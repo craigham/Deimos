@@ -133,12 +133,12 @@ class ReconManager(Manager):
             and self.ai.time < 260.0
         ):
             if len(self.manager_mediator.get_enemy_army_dict[UnitID.ZERGLING]) > 16:
-                logger.info(f"{self.ai.time_formatted} - Eanemy mass ling")
+                logger.info(f"{self.ai.time_formatted} - Enemy mass ling")
                 self._enemy_mass_ling = True
 
         if (
             not self._enemy_fast_third
             and self.manager_mediator.get_enemy_has_base_outside_natural
-            and self.ai.time < 120.0
+            and self.ai.time < 139.0
         ):
             self._enemy_fast_third = True

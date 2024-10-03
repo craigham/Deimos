@@ -64,8 +64,16 @@ class ScoutManager(Manager):
                 role=UnitRole.BUILD_RUNNER_SCOUT, unit_type=self.ai.worker_type
             )
             enemy_expansions = self.manager_mediator.get_enemy_expansions
+            geysers: list[Unit] = [
+                u
+                for u in self.ai.vespene_geyser
+                if cy_distance_to_squared(u.position, self.ai.enemy_start_locations[0])
+                < 144.0
+            ]
             for scout in worker_scouts:
-                scout.move(enemy_expansions[1][0])
+                scout.move(geysers[0].position)
+                scout.move(geysers[1].position, queue=True)
+                scout.move(enemy_expansions[1][0], queue=True)
                 scout.move(enemy_expansions[2][0], queue=True)
                 scout.move(enemy_expansions[3][0], queue=True)
                 scout.move(enemy_expansions[1][0], queue=True)
