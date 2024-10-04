@@ -93,6 +93,7 @@ class MacroManager(Manager):
             and (
                 len(self.manager_mediator.get_enemy_army_dict[UnitID.MARINE]) < 6
                 and self.ai.supply_army < 32
+                and not self.ai.enemy_structures(UnitID.FACTORYTECHLAB)
             )
         )
 

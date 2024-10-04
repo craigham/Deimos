@@ -95,7 +95,10 @@ class MyBot(AresBot):
                         > 0
                     )
                 )
-                or (len(self.mediator.get_enemy_army_dict[UnitID.MARINE]) > 6)
+                or (
+                    len(self.mediator.get_enemy_army_dict[UnitID.MARINE]) > 6
+                    and not self.enemy_structures(UnitID.FACTORYTECHLAB)
+                )
                 or (len(self.mediator.get_enemy_army_dict[UnitID.REAPER]) > 2)
                 or self._deimos_mediator.get_enemy_fast_third
                 or self.enemy_structures(UnitID.SPIRE)

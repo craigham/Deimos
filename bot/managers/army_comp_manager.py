@@ -134,11 +134,17 @@ class ArmyCompManager(Manager):
             self.manager_mediator.get_enemy_worker_rushed and self.ai.supply_used < 26
         ) or (self.manager_mediator.get_enemy_ling_rushed and not self.core_ready):
             self._army_comp = self.zealot_only
-        elif self.ai.build_order_runner.chosen_opening == "OneBaseTempests":
+        elif self.ai.build_order_runner.chosen_opening == "OneBaseTempests" or (
+            self.ai.enemy_race == Race.Terran
+            and len(self.manager_mediator.get_enemy_army_dict[UnitID.SIEGETANKSIEGED])
+            > 0
+            and len(self.ai.enemy_structures(UnitID.BUNKER)) >= 2
+        ):
             self._army_comp = self.tempests_comp
         elif (
             len(self.manager_mediator.get_enemy_army_dict[UnitID.MARINE]) > 6
             and self.ai.supply_army < 32
+            and not self.ai.enemy_structures(UnitID.FACTORYTECHLAB)
         ):
             self._army_comp = self.stalker_comp
         elif (
