@@ -116,7 +116,7 @@ class PhoenixHarass(BaseCombat):
 
             if (
                 AbilityId.CANCEL_GRAVITONBEAM in unit.abilities
-                and air_grid[u_position.x, u_position.y] > 14
+                and air_grid[u_position.x, u_position.y] > 32
             ):
                 unit(AbilityId.CANCEL_GRAVITONBEAM)
                 continue
@@ -137,6 +137,7 @@ class PhoenixHarass(BaseCombat):
                 lift_ready: bool = (
                     unit.shield_percentage > 0.1
                     and AbilityId.GRAVITONBEAM_GRAVITONBEAM in unit.abilities
+                    and air_grid[u_position.x, u_position.y] <= 20
                 )
                 # check we have enough around to hit air
                 if lift_ready:
