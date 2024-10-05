@@ -49,6 +49,7 @@ class NexusManager(Manager):
                     and not s.is_idle
                     and s.type_id
                     and not s.has_buff(BuffId.CHRONOBOOSTENERGYCOST)
+                    and not s.is_transforming
                     and s.orders[0].progress < 0.4
                 ]:
                     target = None

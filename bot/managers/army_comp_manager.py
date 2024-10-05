@@ -154,7 +154,13 @@ class ArmyCompManager(Manager):
             self._army_comp = self.stalker_phoenix_comp
         elif self.ai.supply_used > 120 and self.ai.enemy_race != Race.Zerg:
             self._army_comp = self.stalker_tempests_comp
-        elif self.manager_mediator.get_enemy_ling_rushed and self.ai.supply_army < 20:
+        elif (
+            self.manager_mediator.get_enemy_ling_rushed
+            and self.ai.supply_army
+            < self.ai.get_total_supply(
+                self.manager_mediator.get_enemy_army_dict[UnitID.ZERGLING]
+            )
+        ):
             self._army_comp = self.adept_only_comp
         else:
             self._army_comp = self.stalker_immortal_comp

@@ -70,7 +70,7 @@ class WorkerDefenceManager(Manager):
     @property
     def enabled(self) -> bool:
         return (
-            self.ai.supply_army < 13
+            self.ai.supply_army < 24
             and not self.manager_mediator.get_enemy_marine_rush
             and not [
                 s
