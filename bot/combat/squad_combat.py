@@ -2,6 +2,9 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import numpy as np
+from sc2.ids.ability_id import AbilityId
+from sc2.ids.buff_id import BuffId
+
 from ares.behaviors.combat import CombatManeuver
 from ares.behaviors.combat.individual import (
     AMove,
@@ -10,6 +13,7 @@ from ares.behaviors.combat.individual import (
     PathUnitToTarget,
     ShootTargetInRange,
     StutterUnitBack,
+    UseAbility,
 )
 from ares.consts import ALL_STRUCTURES
 from ares.managers.manager_mediator import ManagerMediator
@@ -24,13 +28,20 @@ from cython_extensions import (
     cy_attack_ready,
     cy_closest_to,
     cy_distance_to,
-    cy_distance_to_squared,
     cy_in_attack_range,
     cy_pick_enemy_target,
 )
 
 if TYPE_CHECKING:
     from ares import AresBot, ManagerMediator
+
+DANGER_TO_AIR: set[UnitID] = {
+    UnitID.VOIDRAY,
+    UnitID.PHOTONCANNON,
+    UnitID.MISSILETURRET,
+    UnitID.SPORECRAWLER,
+    UnitID.BUNKER,
+}
 
 
 @dataclass
@@ -106,7 +117,12 @@ class SquadCombat(BaseCombat):
             else:
                 valid_targets = [u for u in valid_targets if not u.is_flying]
 
-            if unit.type_id == UnitID.OBSERVER:
+            if unit.has_buff(BuffId.LOCKON):
+                attacking_maneuver.add(
+                    UseAbility(AbilityId.MOVE_MOVE, unit, self.ai.start_location)
+                )
+
+            elif unit.type_id == UnitID.OBSERVER:
                 attacking_maneuver.add(KeepUnitSafe(unit=unit, grid=grid))
                 attacking_maneuver.add(
                     PathUnitToTarget(unit=unit, grid=grid, target=target)
@@ -121,7 +137,7 @@ class SquadCombat(BaseCombat):
                         danger_to_air := [
                             u
                             for u in all_close_enemy
-                            if (u.can_attack_air or u.type_id == UnitID.VOIDRAY)
+                            if (u.can_attack_air or u.type_id in DANGER_TO_AIR)
                             and cy_distance_to(u.position, unit.position)
                             <= (
                                 (

@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Union
 
 import numpy as np
+from sc2.ids.buff_id import BuffId
+
 from ares import ManagerMediator, UnitTreeQueryType
 from ares.behaviors.combat import CombatManeuver
 from ares.behaviors.combat.individual import (
@@ -105,6 +107,10 @@ class AdeptHarass(BaseCombat):
             # use shade if available
             if phase_ability in unit.abilities:
                 adept_harass.add(UseAbility(phase_ability, unit, target))
+            elif unit.has_buff(BuffId.LOCKON):
+                adept_harass.add(
+                    UseAbility(AbilityId.MOVE_MOVE, unit, self.ai.start_location)
+                )
             # fighting logic
             elif all_close:
                 can_take_fight: bool = self._can_take_fight(unit, all_close)

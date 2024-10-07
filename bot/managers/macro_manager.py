@@ -68,6 +68,20 @@ class MacroManager(Manager):
         return gas_required
 
     @property
+    def max_probes(self) -> int:
+        max_probes: int = min(90, 22 * len(self.ai.townhalls))
+
+        if self.manager_mediator.get_enemy_ling_rushed and self.ai.supply_army < 28:
+            max_probes = 22
+        elif not self.manager_mediator.get_enemy_expanded and self.ai.supply_army < 28:
+            if self.deimos_mediator.get_enemy_rushed:
+                max_probes = 25
+            elif self.ai.enemy_race == Race.Protoss:
+                max_probes = 29
+
+        return max_probes
+
+    @property
     def require_observer(self) -> bool:
         if (
             self.deimos_mediator.get_enemy_rushed
@@ -102,20 +116,11 @@ class MacroManager(Manager):
             self._check_building_location()
 
         self._do_mining()
-        if self.ai.build_order_runner.build_completed:
-            max_probes: int = min(90, 22 * len(self.ai.townhalls))
-            if (
-                not self.manager_mediator.get_enemy_expanded
-                and self.ai.supply_army < 28
-            ):
-                if self.deimos_mediator.get_enemy_rushed:
-                    max_probes = 25
-                elif self.ai.enemy_race == Race.Protoss:
-                    max_probes = 29
 
+        if self.ai.build_order_runner.build_completed:
             macro_plan: MacroPlan = MacroPlan()
             macro_plan.add(AutoSupply(self._main_building_location))
-            macro_plan.add(BuildWorkers(max_probes))
+            macro_plan.add(BuildWorkers(self.max_probes))
             if self.require_observer:
                 macro_plan.add(
                     SpawnController(
