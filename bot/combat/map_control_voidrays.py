@@ -66,8 +66,9 @@ class MapControlVoidrays(BaseCombat):
         -----------------
         grid : np.ndarray
         """
-
-        if self.ai.is_visible(self.current_ol_spot_target):
+        if self.mediator.get_enemy_ling_rushed:
+            self.current_ol_spot_target = self.mediator.get_own_nat
+        elif self.ai.is_visible(self.current_ol_spot_target):
             self.current_ol_spot_target = next(self.ol_spot_generator)
         grid: np.ndarray = kwargs["grid"]
         stay_defensive: bool = kwargs["stay_defensive"]

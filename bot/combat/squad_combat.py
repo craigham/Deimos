@@ -117,12 +117,7 @@ class SquadCombat(BaseCombat):
             else:
                 valid_targets = [u for u in valid_targets if not u.is_flying]
 
-            if unit.has_buff(BuffId.LOCKON):
-                attacking_maneuver.add(
-                    UseAbility(AbilityId.MOVE_MOVE, unit, self.ai.start_location)
-                )
-
-            elif unit.type_id == UnitID.OBSERVER:
+            if unit.type_id == UnitID.OBSERVER:
                 attacking_maneuver.add(KeepUnitSafe(unit=unit, grid=grid))
                 attacking_maneuver.add(
                     PathUnitToTarget(unit=unit, grid=grid, target=target)
@@ -174,8 +169,13 @@ class SquadCombat(BaseCombat):
                     if not u.is_flying and u.type_id not in ALL_STRUCTURES
                 ]
                 if len(ground) > 0 or always_fight_near_enemy:
-                    if can_engage and unit.shield_health_percentage > 0.2:
-                        enemy_target: Unit = cy_closest_to(unit.position, valid_targets)
+                    if unit.has_buff(BuffId.LOCKON):
+                        attacking_maneuver.add(
+                            UseAbility(AbilityId.MOVE_MOVE, unit, self.ai.start_location)
+                        )
+                    elif can_engage and unit.shield_health_percentage > 0.2:
+                        # enemy_target: Unit = cy_closest_to(unit.position, valid_targets)
+                        enemy_target: Unit = cy_pick_enemy_target(valid_targets)
                         if unit.ground_range < 3.0:
                             attacking_maneuver.add(
                                 AMove(unit=unit, target=enemy_target)
