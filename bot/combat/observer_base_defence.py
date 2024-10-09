@@ -5,8 +5,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 from ares import ManagerMediator
 from ares.behaviors.combat import CombatManeuver
-from ares.behaviors.combat.individual import AMove, UseAbility, KeepUnitSafe
-from bot.consts import COMMON_UNIT_IGNORE_TYPES
+from ares.behaviors.combat.individual import AMove, KeepUnitSafe, UseAbility
 from map_analyzer import MapData
 from sc2.ids.ability_id import AbilityId
 from sc2.position import Point2
@@ -15,12 +14,13 @@ from sc2.units import Units
 from src.ares.consts import UnitTreeQueryType
 
 from bot.combat.base_combat import BaseCombat
+from bot.consts import COMMON_UNIT_IGNORE_TYPES
 from cython_extensions import (
+    cy_attack_ready,
     cy_closest_to,
+    cy_distance_to,
     cy_distance_to_squared,
     cy_pick_enemy_target,
-    cy_distance_to,
-    cy_attack_ready,
 )
 
 if TYPE_CHECKING:

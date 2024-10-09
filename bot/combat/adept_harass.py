@@ -2,19 +2,18 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Union
 
 import numpy as np
-from sc2.ids.buff_id import BuffId
-
 from ares import ManagerMediator, UnitTreeQueryType
 from ares.behaviors.combat import CombatManeuver
 from ares.behaviors.combat.individual import (
     KeepUnitSafe,
+    PathUnitToTarget,
     ShootTargetInRange,
     StutterUnitBack,
     UseAbility,
-    PathUnitToTarget,
 )
 from ares.consts import VICTORY_DECISIVE_OR_BETTER, EngagementResult
 from sc2.ids.ability_id import AbilityId
+from sc2.ids.buff_id import BuffId
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
 from sc2.unit import Unit

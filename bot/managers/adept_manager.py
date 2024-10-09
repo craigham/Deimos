@@ -12,7 +12,7 @@ from ares.consts import (
     UnitTreeQueryType,
 )
 from ares.managers.manager import Manager
-from cython_extensions.units_utils import cy_closest_to, cy_center
+from cython_extensions.units_utils import cy_center, cy_closest_to
 from map_analyzer import MapData
 from sc2.data import Race
 from sc2.ids.unit_typeid import UnitTypeId as UnitID

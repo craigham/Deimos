@@ -2,19 +2,17 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Union
 
 import numpy as np
-from src.ares.consts import UnitTreeQueryType, WORKER_TYPES
-
 from ares import ManagerMediator
 from ares.managers.squad_manager import UnitSquad
 from sc2.ids.ability_id import AbilityId
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
+from src.ares.consts import WORKER_TYPES, UnitTreeQueryType
 
 from bot.combat.base_combat import BaseCombat
-from cython_extensions import cy_attack_ready, cy_center
-
 from bot.consts import COMMON_UNIT_IGNORE_TYPES
+from cython_extensions import cy_attack_ready, cy_center
 
 if TYPE_CHECKING:
     from ares import AresBot

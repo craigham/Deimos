@@ -1,7 +1,5 @@
 from typing import TYPE_CHECKING
 
-from sc2.data import Race
-
 from ares import ManagerMediator, UnitRole
 from ares.behaviors.macro import (
     AutoSupply,
@@ -14,6 +12,7 @@ from ares.behaviors.macro import (
     SpawnController,
 )
 from ares.managers.manager import Manager
+from sc2.data import Race
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.position import Point2
 from sc2.units import Units
@@ -52,7 +51,10 @@ class MacroManager(Manager):
 
     @property
     def can_expand(self) -> bool:
-        if self.deimos_mediator.get_enemy_rushed and self.ai.supply_army < 22:
+        if (
+            self.deimos_mediator.get_enemy_rushed
+            or len(self.manager_mediator.get_enemy_army_dict[UnitID.REAPER]) >= 2
+        ) and self.ai.supply_army < 22:
             return False
 
         return self.ai.minerals > 400
@@ -151,14 +153,16 @@ class MacroManager(Manager):
                 )
             )
             add_production_at_bank: tuple = (300, 300)
+            alpha: float = 0.6
             if self.deimos_mediator.get_enemy_rushed:
                 add_production_at_bank = (150, 0)
+                alpha = 0.4
             macro_plan.add(
                 ProductionController(
                     self.deimos_mediator.get_army_comp,
                     base_location=self._main_building_location,
                     add_production_at_bank=add_production_at_bank,
-                    alpha=0.6,
+                    alpha=alpha,
                 )
             )
 

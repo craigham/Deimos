@@ -2,8 +2,6 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import numpy as np
-from sc2.data import Race
-
 from ares import ManagerMediator
 from ares.behaviors.combat import CombatManeuver
 from ares.behaviors.combat.individual import (
@@ -15,6 +13,7 @@ from ares.behaviors.combat.individual import (
     UseAbility,
 )
 from ares.consts import ALL_STRUCTURES, UnitTreeQueryType
+from sc2.data import Race
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.buff_id import BuffId
 from sc2.ids.unit_typeid import UnitTypeId as UnitID

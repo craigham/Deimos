@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Any
 
 from ares import ManagerMediator
+from ares.consts import WORKER_TYPES
 from ares.managers.manager import Manager
 from sc2.data import Race
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
@@ -159,7 +160,11 @@ class ArmyCompManager(Manager):
             and len(self.manager_mediator.get_own_army_dict[UnitID.PHOENIX]) < 4
         ):
             self._army_comp = self.stalker_phoenix_comp
-        elif self.ai.supply_used > 120 and self.ai.enemy_race != Race.Zerg:
+        elif (
+            self.ai.supply_used > 120
+            and self.ai.enemy_race != Race.Zerg
+            and len(self.manager_mediator.get_own_army_dict[UnitID.MARINE]) < 10
+        ):
             self._army_comp = self.stalker_tempests_comp
         elif self.manager_mediator.get_enemy_ling_rushed and (
             self.ai.supply_army
@@ -171,7 +176,11 @@ class ArmyCompManager(Manager):
             self._army_comp = self.adept_only_comp
         else:
             supply_light: float = self.ai.get_total_supply(
-                [u for u in self.ai.enemy_units if u.is_light]
+                [
+                    u
+                    for u in self.ai.enemy_units
+                    if u.is_light and u.type_id not in WORKER_TYPES and not u.is_flying
+                ]
             )
             if supply_light >= 20:
                 self._army_comp = self.stalker_colossus_comp

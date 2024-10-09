@@ -1,12 +1,11 @@
 from typing import TYPE_CHECKING, Any
 
-from loguru import logger
-from sc2.constants import ALL_GAS
-from sc2.data import Race
-
 from ares import ManagerMediator
 from ares.cache import property_cache_once_per_frame
 from ares.managers.manager import Manager
+from loguru import logger
+from sc2.constants import ALL_GAS
+from sc2.data import Race
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.unit import Unit
 

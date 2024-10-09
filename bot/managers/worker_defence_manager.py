@@ -189,13 +189,8 @@ class WorkerDefenceManager(Manager):
         for probe in defender_probes:
             if (
                 (not enemy_near_bases and not proxies and len(near_enemy_workers) < 6)
-                or (
-                    probe.shield_percentage <= 0.2
-                    and not self.manager_mediator.get_enemy_worker_rushed
-                )
                 or cy_distance_to_squared(probe.position, self.ai.start_location)
                 > 2400.0
-                or probe.shield_health_percentage < 0.1
             ):
                 self.manager_mediator.assign_role(
                     tag=probe.tag, role=UnitRole.GATHERING
