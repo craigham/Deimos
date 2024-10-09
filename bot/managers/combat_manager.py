@@ -223,7 +223,7 @@ class CombatManager(Manager):
 
     def _check_aggressive_status(self) -> None:
         reapers: Units = self.manager_mediator.get_enemy_army_dict[UnitID.REAPER]
-        if len(reapers) >= 3 and (self.ai.supply_army * 0.7) < self.ai.get_total_supply(
+        if len(reapers) >= 3 and (self.ai.supply_army * 1.2) < self.ai.get_total_supply(
             reapers
         ):
             self.aggressive = False
@@ -231,6 +231,7 @@ class CombatManager(Manager):
             self.ai.enemy_race in {Race.Zerg, Race.Terran}
             and len(self.manager_mediator.get_enemy_army_dict[UnitID.MUTALISK]) == 0
             and len(reapers) <= 3
+            and not self.manager_mediator.get_enemy_roach_rushed
         ) or self.ai.build_order_runner.chosen_opening == "OneBaseTempests":
             self.aggressive = True
 

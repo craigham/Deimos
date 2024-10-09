@@ -66,7 +66,7 @@ class MapControlVoidrays(BaseCombat):
         -----------------
         grid : np.ndarray
         """
-        if self.mediator.get_enemy_ling_rushed:
+        if self.mediator.get_enemy_ling_rushed or self.mediator.get_enemy_roach_rushed:
             self.current_ol_spot_target = self.mediator.get_own_nat
         elif self.ai.is_visible(self.current_ol_spot_target):
             self.current_ol_spot_target = next(self.ol_spot_generator)

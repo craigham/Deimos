@@ -109,8 +109,8 @@ class MyBot(AresBot):
                         self.mediator.cancel_structure(structure=th)
 
                 # probably don't need this, review later
-                for sg in self.structures(UnitID.STARGATE):
-                    self.mediator.cancel_structure(structure=sg)
+                for s in self.structures({UnitID.STARGATE, UnitID.TWILIGHTCOUNCIL}):
+                    self.mediator.cancel_structure(structure=s)
 
                 if not self._deimos_mediator.get_enemy_proxies:
                     worker_scouts: Units = self.mediator.get_units_from_role(

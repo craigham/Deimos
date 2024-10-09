@@ -65,6 +65,7 @@ class MapControlManager(Manager):
             stay_defensive=(
                 self.deimos_mediator.get_enemy_rushed
                 or self.deimos_mediator.get_enemy_went_mass_ling
+                or self.manager_mediator.get_enemy_roach_rushed
             ),
             grid=grid,
         )
