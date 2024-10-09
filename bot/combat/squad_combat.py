@@ -171,11 +171,13 @@ class SquadCombat(BaseCombat):
                 if len(ground) > 0 or always_fight_near_enemy:
                     if unit.has_buff(BuffId.LOCKON):
                         attacking_maneuver.add(
-                            UseAbility(AbilityId.MOVE_MOVE, unit, self.ai.start_location)
+                            UseAbility(
+                                AbilityId.MOVE_MOVE, unit, self.ai.start_location
+                            )
                         )
                     elif can_engage and unit.shield_health_percentage > 0.2:
-                        # enemy_target: Unit = cy_closest_to(unit.position, valid_targets)
-                        enemy_target: Unit = cy_pick_enemy_target(valid_targets)
+                        enemy_target: Unit = cy_closest_to(unit.position, valid_targets)
+                        # enemy_target: Unit = cy_pick_enemy_target(valid_targets)
                         if unit.ground_range < 3.0:
                             attacking_maneuver.add(
                                 AMove(unit=unit, target=enemy_target)
