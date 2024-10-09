@@ -185,13 +185,11 @@ class MacroManager(Manager):
         elif self.ai.vespene < 100:
             self._workers_per_gas = 3
 
-        if self._on_gas_toggle:
-            if self.ai.vespene > 1500 and self.ai.minerals < 100:
-                self._on_gas_toggle = False
-        else:
-            if self.ai.vespene < 400 or self.ai.minerals > 1200:
-                self._on_gas_toggle = True
-                self._workers_per_gas = 3
+        if self._on_gas_toggle and self.ai.vespene > 1500 and self.ai.minerals < 100:
+            self._on_gas_toggle = False
+        elif self.ai.vespene < 400 or self.ai.minerals > 1200:
+            self._on_gas_toggle = True
+            self._workers_per_gas = 3
 
         if not self._on_gas_toggle:
             self._workers_per_gas = 0

@@ -76,6 +76,13 @@ class ArmyCompManager(Manager):
         }
 
     @property
+    def stalker_colossus_comp(self) -> dict:
+        return {
+            UnitID.COLOSSUS: {"proportion": 0.15, "priority": 1},
+            UnitID.STALKER: {"proportion": 0.85, "priority": 2},
+        }
+
+    @property
     def stalker_immortal_comp(self) -> dict:
         return {
             UnitID.IMMORTAL: {"proportion": 0.15, "priority": 1},
@@ -163,4 +170,10 @@ class ArmyCompManager(Manager):
         ):
             self._army_comp = self.adept_only_comp
         else:
-            self._army_comp = self.stalker_immortal_comp
+            supply_light: float = self.ai.get_total_supply(
+                [u for u in self.ai.enemy_units if u.is_light]
+            )
+            if supply_light >= 20:
+                self._army_comp = self.stalker_colossus_comp
+            else:
+                self._army_comp = self.stalker_immortal_comp
