@@ -76,6 +76,7 @@ class AdeptShadeHarass(BaseCombat):
             target = self.ai.enemy_start_locations[0]
             if unit_tag in target_dict:
                 target = target_dict[unit_tag]
+            target = self.mediator.find_closest_safe_spot(from_pos=target, grid=grid)
             if (
                 AbilityId.CANCEL_ADEPTSHADEPHASESHIFT in unit.abilities
                 and unit_tag in cancel_shades_dict

@@ -188,10 +188,10 @@ class WorkerDefenceManager(Manager):
 
         for probe in defender_probes:
             if (
-                (not enemy_near_bases and not proxies and len(near_enemy_workers) < 6)
-                or cy_distance_to_squared(probe.position, self.ai.start_location)
-                > 2400.0
-            ):
+                not enemy_near_bases and not proxies and len(near_enemy_workers) < 6
+            ) or cy_distance_to_squared(
+                probe.position, self.ai.start_location
+            ) > 2400.0:
                 self.manager_mediator.assign_role(
                     tag=probe.tag, role=UnitRole.GATHERING
                 )

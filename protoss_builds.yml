@@ -79,27 +79,27 @@ Builds:
             - 20 pylon
             - 20 gas
             - 20 nexus
-            - 21 adept
+            - 21 adept @ ramp
             - 21 stargate
             - 24 warpgateresearch
-            - 24 adept
+            - 24 adept @ ramp
             - 24 chrono @ gateway
             - 26 voidray
             - 26 chrono @ stargate
-            - 24 adept
+            - 24 adept @ ramp
             - 30 twilightcouncil
             - 32 gateway *3
-            - 32 adept
+            - 32 adept @ ramp
             - 32 adeptpiercingattack
             - 32 chrono @ twilightcouncil
             - 32 gateway
             - 32 pylon *2
-            - 34 adept *3
+            - 34 adept *3 @ ramp
             - 34 chrono @ twilightcouncil
-            - 34 adept *5
+            - 34 adept *5 @ ramp
             - 34 chrono @ twilightcouncil
             - 34 roboticsfacility
-            - 34 adept *5
+            - 34 adept *5 @ ramp
 
     BasicOpener:
         ConstantWorkerProductionTill: 22

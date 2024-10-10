@@ -1,10 +1,9 @@
 from typing import Optional
 
-from sc2.data import Race
-
 from ares import AresBot, Hub, ManagerMediator, UnitRole
 from ares.managers.manager import Manager
 from loguru import logger
+from sc2.data import Race
 from sc2.ids.unit_typeid import UnitTypeId as UnitID
 from sc2.unit import Unit
 from sc2.units import Units

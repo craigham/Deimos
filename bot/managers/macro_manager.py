@@ -92,7 +92,7 @@ class MacroManager(Manager):
         ):
             return False
 
-        observers_required: int = 1 if self.ai.supply_used < 90 else 4
+        observers_required: int = 1 if self.ai.supply_used < 138 else 2
         return (
             len(self.manager_mediator.get_own_army_dict[UnitID.OBSERVER])
             + self.ai.unit_pending(UnitID.OBSERVER)
@@ -127,7 +127,7 @@ class MacroManager(Manager):
             if self.require_observer:
                 macro_plan.add(
                     SpawnController(
-                        {UnitID.OBSERVER: {"proportion": 1.0, "priority": 0}}
+                        {UnitID.OBSERVER: {"proportion": 1.0, "priority": 0}},
                     )
                 )
             if self.require_phoenix:
@@ -141,11 +141,14 @@ class MacroManager(Manager):
                     self.deimos_mediator.get_army_comp,
                     spawn_target=self.manager_mediator.get_own_nat,
                     freeflow_mode=self.ai.minerals > 500 and self.ai.vespene > 500,
-                    ignore_proportions_below_unit_count=4,
+                    ignore_proportions_below_unit_count=11,
                 )
             )
             if self.can_expand:
-                macro_plan.add(ExpansionController(to_count=100, max_pending=2))
+                max_pending = 2 if self.ai.supply_used > 138 else 1
+                macro_plan.add(
+                    ExpansionController(to_count=100, max_pending=max_pending)
+                )
             macro_plan.add(
                 GasBuildingController(
                     to_count=self.gas_buildings_required,

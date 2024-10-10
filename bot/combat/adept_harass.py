@@ -93,6 +93,7 @@ class AdeptHarass(BaseCombat):
                 if not u.is_memory
                 and u.type_id not in COMMON_UNIT_IGNORE_TYPES
                 and not u.is_snapshot
+                and u.is_visible
             ]
             only_enemy_units: list[Unit] = [
                 u for u in all_close if u.type_id not in ALL_STRUCTURES
@@ -190,6 +191,9 @@ class AdeptHarass(BaseCombat):
             return cy_pick_enemy_target(all_targets)
 
     def _can_take_fight(self, unit: Unit, all_close: list[Unit]) -> bool:
+        if [u for u in all_close if u.type_id == UnitID.SPINECRAWLER]:
+            return False
+
         result: EngagementResult = self.mediator.can_win_fight(
             own_units=self.mediator.get_units_in_range(
                 start_points=[unit.position],

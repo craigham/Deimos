@@ -45,11 +45,14 @@ class ScoutManager(Manager):
         self._probe_delay_lings()
 
     def _probe_delay_lings(self) -> None:
-        if self.manager_mediator.get_enemy_ling_rushed:
-            worker_scouts: Units = self.manager_mediator.get_units_from_role(
-                role=UnitRole.BUILD_RUNNER_SCOUT, unit_type=self.ai.worker_type
-            )
-            for scout in worker_scouts:
+        worker_scouts: Units = self.manager_mediator.get_units_from_role(
+            role=UnitRole.BUILD_RUNNER_SCOUT, unit_type=self.ai.worker_type
+        )
+        for scout in worker_scouts:
+            if (
+                self.manager_mediator.get_enemy_ling_rushed
+                or scout.shield_health_percentage < 0.4
+            ):
                 self.ai.register_behavior(
                     KeepUnitSafe(scout, self.manager_mediator.get_ground_grid)
                 )

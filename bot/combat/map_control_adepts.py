@@ -3,6 +3,10 @@ from itertools import cycle
 from typing import TYPE_CHECKING
 
 import numpy as np
+from cython_extensions import cy_closest_to
+from sc2.ids.unit_typeid import UnitTypeId as UnitID
+from sc2.unit import Unit
+
 from ares import ManagerMediator
 from ares.behaviors.combat import CombatManeuver
 from ares.behaviors.combat.individual import (
@@ -77,6 +81,11 @@ class MapControlAdepts(BaseCombat):
             close_enemy: Units = everything_near_adepts[unit_tag].filter(
                 lambda u: not u.is_memory
             )
+            drones: list[Unit] = [
+                u
+                for u in close_enemy
+                if u.type_id == UnitID.DRONE and not self.ai.has_creep(u.position)
+            ]
 
             maneuver: CombatManeuver = CombatManeuver()
             maneuver.add(
@@ -87,8 +96,17 @@ class MapControlAdepts(BaseCombat):
                 )
             )
             maneuver.add(ShootTargetInRange(unit=unit, targets=close_enemy))
-            maneuver.add(KeepUnitSafe(unit, grid))
-            maneuver.add(AMove(unit, self.mediator.get_enemy_nat))
+            if drones:
+                maneuver.add(
+                    UseAbility(
+                        AbilityId.MOVE_MOVE,
+                        unit,
+                        cy_closest_to(unit.position, drones).position,
+                    )
+                )
+            else:
+                maneuver.add(KeepUnitSafe(unit, grid))
+                maneuver.add(AMove(unit, self.mediator.get_enemy_nat))
 
             self.ai.register_behavior(maneuver)
 
