@@ -1,6 +1,7 @@
 from typing import Optional
 
 from ares import AresBot, Hub, ManagerMediator, UnitRole
+from ares.behaviors.macro import BuildStructure
 from ares.managers.manager import Manager
 from loguru import logger
 from sc2.data import Race
@@ -120,6 +121,18 @@ class MyBot(AresBot):
                             tag=scout.tag, role=UnitRole.GATHERING
                         )
                         scout.gather(self.mineral_field.closest_to(self.start_location))
+
+                if (
+                    self._deimos_mediator.get_enemy_rushed
+                    and not self.mediator.get_enemy_worker_rushed
+                ):
+                    self.register_behavior(
+                        BuildStructure(
+                            self.start_location,
+                            UnitID.SHIELDBATTERY,
+                            closest_to=self.main_base_ramp.top_center,
+                        )
+                    )
 
                 logger.info(f"{self.time_formatted}: Setting BO Completed")
                 self.build_order_runner.set_build_completed()

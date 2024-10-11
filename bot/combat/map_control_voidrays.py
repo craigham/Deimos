@@ -21,6 +21,7 @@ from cython_extensions import (
     cy_distance_to,
     cy_distance_to_squared,
     cy_pick_enemy_target,
+    cy_towards,
 )
 
 if TYPE_CHECKING:
@@ -67,7 +68,11 @@ class MapControlVoidrays(BaseCombat):
         grid : np.ndarray
         """
         if self.mediator.get_enemy_ling_rushed or self.mediator.get_enemy_roach_rushed:
-            self.current_ol_spot_target = self.mediator.get_own_nat
+            self.current_ol_spot_target = Point2(
+                cy_towards(
+                    self.mediator.get_own_nat, self.ai.game_info.map_center, 15.0
+                )
+            )
         elif self.ai.is_visible(self.current_ol_spot_target):
             self.current_ol_spot_target = next(self.ol_spot_generator)
         grid: np.ndarray = kwargs["grid"]

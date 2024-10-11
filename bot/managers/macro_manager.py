@@ -149,12 +149,13 @@ class MacroManager(Manager):
                 macro_plan.add(
                     ExpansionController(to_count=100, max_pending=max_pending)
                 )
-            macro_plan.add(
-                GasBuildingController(
-                    to_count=self.gas_buildings_required,
-                    max_pending=1 if self.ai.supply_workers < 60 else 3,
+            if self._workers_per_gas > 0:
+                macro_plan.add(
+                    GasBuildingController(
+                        to_count=self.gas_buildings_required,
+                        max_pending=1 if self.ai.supply_workers < 60 else 3,
+                    )
                 )
-            )
             add_production_at_bank: tuple = (300, 300)
             alpha: float = 0.6
             if self.deimos_mediator.get_enemy_rushed:
