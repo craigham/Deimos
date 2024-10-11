@@ -105,7 +105,7 @@ class CombatManager(Manager):
         if (
             (
                 self.deimos_mediator.get_enemy_rushed
-                and self.ai.time < 240.0
+                and self.ai.supply_army < 20
                 and not self.manager_mediator.get_enemy_worker_rushed
             )
             or (
@@ -283,7 +283,11 @@ class CombatManager(Manager):
 
             self._track_squad_engagement(army, squad, all_close_enemy)
             can_engage: bool = self._squad_id_to_engage_tracker[squad.squad_id]
-            if self.deimos_mediator.get_enemy_rushed and self.ai.time < 330.0:
+            if (
+                self.deimos_mediator.get_enemy_rushed
+                and self.ai.time < 330.0
+                and not self.manager_mediator.get_enemy_ling_rushed
+            ):
                 can_engage = True
 
             # self._manage_squad_target(squad, can_engage, all_close_enemy, move_to)
