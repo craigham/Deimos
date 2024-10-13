@@ -144,8 +144,6 @@ class ArmyCompManager(Manager):
             self._army_comp = self.zealot_only
         elif self.ai.build_order_runner.chosen_opening == "OneBaseTempests" or (
             self.ai.enemy_race == Race.Terran
-            and len(self.manager_mediator.get_enemy_army_dict[UnitID.SIEGETANKSIEGED])
-            > 0
             and len(self.ai.enemy_structures(UnitID.BUNKER)) >= 2
         ):
             self._army_comp = self.tempests_comp

@@ -145,7 +145,10 @@ class SquadCombat(BaseCombat):
                         ]
                     )
                 ):
-                    e_target: Unit = cy_pick_enemy_target(danger_to_air)
+                    if f_danger := [e for e in danger_to_air if e.is_flying]:
+                        e_target: Unit = cy_pick_enemy_target(f_danger)
+                    else:
+                        e_target: Unit = cy_pick_enemy_target(danger_to_air)
                     if target and cy_attack_ready(self.ai, unit, e_target):
                         attacking_maneuver.add(AttackTarget(unit=unit, target=e_target))
 

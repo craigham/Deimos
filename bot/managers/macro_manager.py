@@ -161,6 +161,8 @@ class MacroManager(Manager):
             if self.deimos_mediator.get_enemy_rushed:
                 add_production_at_bank = (150, 0)
                 alpha = 0.4
+            elif UnitID.TEMPEST in self.deimos_mediator.get_army_comp:
+                alpha = 1.0
             macro_plan.add(
                 ProductionController(
                     self.deimos_mediator.get_army_comp,
